@@ -6,17 +6,19 @@
 #include <glut.h>
 
 #define pi (2*acos(0.0))
+#define CAMERA_ANGLE_CHANGE 0.2
+
+class point
+{
+public:
+	double x, y, z;
+};
 
 double cameraHeight;
 double cameraAngle;
 int drawgrid;
 int drawaxes;
 double angle;
-
-struct point
-{
-	double x,y,z;
-};
 
 
 void drawAxes()
@@ -324,7 +326,7 @@ void display(){
 
 
 void animate(){
-	angle+=0.05;
+	//angle+=0.05;
 	//codes for any changes in Models, Camera
 	glutPostRedisplay();
 }
