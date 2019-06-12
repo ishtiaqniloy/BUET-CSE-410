@@ -13,15 +13,15 @@
 #define MAX_LEN 20.0
 #define LEN_CHANGE 0.5
 
+#define SPHERE_SLICES 20
+#define SPHERE_STACKS 20
 
-class Point
-{
+class Point{
 public:
 	double x, y, z;
 };
 
-class Vector
-{
+class Vector{
 public:
 	double x, y, z;
 };
@@ -63,10 +63,8 @@ Vector rotateVector(Vector v, Vector refer, double rotationAngle){
 }
 
 
-void drawAxes()
-{
-	if(drawaxes==1)
-	{
+void drawAxes(){
+	if(drawaxes==1){
 		glColor3f(1.0, 1.0, 1.0);
 		glBegin(GL_LINES);{
 			glVertex3f( 100,0,0);
@@ -81,11 +79,9 @@ void drawAxes()
 	}
 }
 
-void drawGrid()
-{
+void drawGrid(){
 	int i;
-	if(drawgrid==1)
-	{
+	if(drawgrid==1){
 		glColor3f(0.6, 0.6, 0.6);	//grey
 		glBegin(GL_LINES);{
 			for(i=-8;i<=8;i++){
@@ -105,8 +101,7 @@ void drawGrid()
 	}
 }
 
-void drawSquare(double a)
-{
+void drawSquare(double a){
     //glColor3f(1.0,0.0,0.0);
 	glBegin(GL_QUADS);{
 		glVertex3f( a,  a, 0);
@@ -117,93 +112,29 @@ void drawSquare(double a)
 }
 
 
-void drawCircle(double radius,int segments)
-{
-    int i;
-    Point points[100];
-    glColor3f(0.7,0.7,0.7);
-    //generate points
-    for(i=0;i<=segments;i++)
-    {
-        points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
-        points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
-    }
-    //draw segments using generated points
-    for(i=0;i<segments;i++)
-    {
-        glBegin(GL_LINES);
-        {
-			glVertex3f(points[i].x,points[i].y,0);
-			glVertex3f(points[i+1].x,points[i+1].y,0);
-        }
-        glEnd();
-    }
-}
-
-void drawCone(double radius,double height,int segments)
-{
-    int i;
-    double shade;
-    Point points[100];
-    //generate points
-    for(i=0;i<=segments;i++)
-    {
-        points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
-        points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
-    }
-    //draw triangles using generated points
-    for(i=0;i<segments;i++)
-    {
-        //create shading effect
-        if(i<segments/2)shade=2*(double)i/(double)segments;
-        else shade=2*(1.0-(double)i/(double)segments);
-        glColor3f(shade,shade,shade);
-
-        glBegin(GL_TRIANGLES);
-        {
-            glVertex3f(0,0,height);
-			glVertex3f(points[i].x,points[i].y,0);
-			glVertex3f(points[i+1].x,points[i+1].y,0);
-        }
-        glEnd();
-    }
-}
-
-
-void drawSphere(double radius,int slices,int stacks)
-{
+void drawSpherePart(double radius,int slices,int stacks){
 	Point points[100][100];
 	int i,j;
 	double h,r;
 	//generate points
-	for(i=0;i<=stacks;i++)
-	{
+	for(i=0;i<=stacks;i++){
 		h=radius*sin(((double)i/(double)stacks)*(pi/2));
 		r=radius*cos(((double)i/(double)stacks)*(pi/2));
-		for(j=0;j<=slices;j++)
-		{
-			points[i][j].x=r*cos(((double)j/(double)slices)*2*pi);
-			points[i][j].y=r*sin(((double)j/(double)slices)*2*pi);
+		for(j=0;j<=slices;j++){
+			points[i][j].x=r*cos(((double)j/(double)slices)*pi/2.0);
+			points[i][j].y=r*sin(((double)j/(double)slices)*pi/2.0);
 			points[i][j].z=h;
 		}
 	}
 	//draw quads using generated points
-	for(i=0;i<stacks;i++)
-	{
-        glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
-		for(j=0;j<slices;j++)
-		{
+	for(i=0;i<stacks;i++){
+		for(j=0;j<slices;j++){
 			glBegin(GL_QUADS);{
 			    //upper hemisphere
 				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
 				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
 				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
 				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
-                //lower hemisphere
-                glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
 			}glEnd();
 		}
 	}
@@ -238,50 +169,84 @@ void drawSS()
     drawSquare(5);
 }
 
-void drawSphereCube()
-{
-    glColor3f(1,1,1);   //white color
-    glPushMatrix();     //clean stack
+void drawCube(){
+    glColor3f(1, 1, 1);   //white colorx
 
     //up
+    glPushMatrix();
     glTranslatef(0, 0, MAX_LEN);
     drawSquare(currentLen);
     glPopMatrix();
-    glPushMatrix();
 
     //down
+    glPushMatrix();
     glTranslatef(0, 0, -MAX_LEN);
     drawSquare(currentLen);
     glPopMatrix();
-    glPushMatrix();
 
     //left
+    glPushMatrix();
     glTranslatef(MAX_LEN, 0, 0);
     glRotatef(90, 0, 1, 0);
     drawSquare(currentLen);
     glPopMatrix();
-    glPushMatrix();
 
     //right
+    glPushMatrix();
     glTranslatef(-MAX_LEN, 0, 0);
     glRotatef(90, 0, 1, 0);
     drawSquare(currentLen);
     glPopMatrix();
-    glPushMatrix();
 
     //back
+    glPushMatrix();
     glTranslatef(0, -MAX_LEN, 0);
     glRotatef(90, 1, 0, 0);
     drawSquare(currentLen);
     glPopMatrix();
-    glPushMatrix();
 
     //front
+    glPushMatrix();
     glTranslatef(0, MAX_LEN, 0);
     glRotatef(90, 1, 0, 0);
     drawSquare(currentLen);
     glPopMatrix();
 
+}
+
+void drawSphere(){
+    glColor3f(1, 0, 0);   //white color
+
+    glPushMatrix();     //clean stack
+    glTranslatef(currentLen, currentLen, currentLen);
+    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(90, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, currentLen);
+    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(180, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, currentLen);
+    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(270, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, currentLen);
+    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    glPopMatrix();
+
+
+}
+
+void drawCubeSphereCylinder()
+{
+    drawCube();
+    drawSphere();
 }
 
 
@@ -446,7 +411,7 @@ void display(){
 	drawAxes();
 	drawGrid();
 
-    drawSphereCube();
+    drawCubeSphereCylinder();
 
 
 	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
