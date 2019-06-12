@@ -217,6 +217,7 @@ void drawCube(){
 void drawSphere(){
     glColor3f(1, 0, 0);   //white color
 
+    //upper half sphere
     glPushMatrix();     //clean stack
     glTranslatef(currentLen, currentLen, currentLen);
     drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
@@ -237,6 +238,35 @@ void drawSphere(){
     glPushMatrix();
     glRotatef(270, 0, 0, 1);
     glTranslatef(currentLen, currentLen, currentLen);
+    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    glPopMatrix();
+
+
+    //lower half sphere
+    glPushMatrix();     //clean stack
+    glTranslatef(currentLen, currentLen, -currentLen);
+    glRotatef(180, 1, 1, 0);
+    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(90, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, -currentLen);
+    glRotatef(180, 1, 1, 0);
+    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(180, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, -currentLen);
+    glRotatef(180, 1, 1, 0);
+    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(270, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, -currentLen);
+    glRotatef(180, 1, 1, 0);
     drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
     glPopMatrix();
 
