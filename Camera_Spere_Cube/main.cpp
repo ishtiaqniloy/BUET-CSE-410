@@ -6,10 +6,13 @@
 #include <glut.h>
 
 #define pi (2*acos(0.0))
+
 #define CAMERA_ANGLE_CHANGE 0.5
 #define CAMERA_POS_CHANGE 3
 
-#define MAX_LEN 20
+#define MAX_LEN 20.0
+#define LEN_CHANGE 0.5
+
 
 class Point
 {
@@ -26,6 +29,7 @@ public:
 int drawgrid;
 int drawaxes;
 double angle;
+double currentLen;
 
 Point camera_pos;
 Vector camera_u, camera_r, camera_l;
@@ -77,7 +81,6 @@ void drawAxes()
 	}
 }
 
-
 void drawGrid()
 {
 	int i;
@@ -106,10 +109,10 @@ void drawSquare(double a)
 {
     //glColor3f(1.0,0.0,0.0);
 	glBegin(GL_QUADS);{
-		glVertex3f( a, a,2);
-		glVertex3f( a,-a,2);
-		glVertex3f(-a,-a,2);
-		glVertex3f(-a, a,2);
+		glVertex3f( a,  a, 0);
+		glVertex3f( a, -a, 0);
+		glVertex3f(-a, -a, 0);
+		glVertex3f(-a,  a, 0);
 	}glEnd();
 }
 
@@ -235,6 +238,53 @@ void drawSS()
     drawSquare(5);
 }
 
+void drawSphereCube()
+{
+    glColor3f(1,1,1);   //white color
+    glPushMatrix();     //clean stack
+
+    //up
+    glTranslatef(0, 0, MAX_LEN);
+    drawSquare(currentLen);
+    glPopMatrix();
+    glPushMatrix();
+
+    //down
+    glTranslatef(0, 0, -MAX_LEN);
+    drawSquare(currentLen);
+    glPopMatrix();
+    glPushMatrix();
+
+    //left
+    glTranslatef(MAX_LEN, 0, 0);
+    glRotatef(90, 0, 1, 0);
+    drawSquare(currentLen);
+    glPopMatrix();
+    glPushMatrix();
+
+    //right
+    glTranslatef(-MAX_LEN, 0, 0);
+    glRotatef(90, 0, 1, 0);
+    drawSquare(currentLen);
+    glPopMatrix();
+    glPushMatrix();
+
+    //back
+    glTranslatef(0, -MAX_LEN, 0);
+    glRotatef(90, 1, 0, 0);
+    drawSquare(currentLen);
+    glPopMatrix();
+    glPushMatrix();
+
+    //front
+    glTranslatef(0, MAX_LEN, 0);
+    glRotatef(90, 1, 0, 0);
+    drawSquare(currentLen);
+    glPopMatrix();
+
+}
+
+
 void keyboardListener(unsigned char key, int x,int y){
 	switch(key){
 
@@ -317,8 +367,16 @@ void specialKeyListener(int key, int x,int y){
 			break;
 
 		case GLUT_KEY_HOME:
+		    currentLen -= LEN_CHANGE;
+		    if(currentLen<0){
+                currentLen = 0;
+		    }
 			break;
 		case GLUT_KEY_END:
+		    currentLen += LEN_CHANGE;
+		    if(currentLen>MAX_LEN){
+                currentLen = MAX_LEN;
+		    }
 			break;
 
 		default:
@@ -351,33 +409,6 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 	}
 }
 
-void drawSphereCube()
-{
-    glColor3f(1,0,0);
-    drawSquare(20);
-
-    glRotatef(angle,0,0,1);
-    glTranslatef(110,0,0);
-    glRotatef(2*angle,0,0,1);
-    glColor3f(0,1,0);
-    drawSquare(15);
-
-    glPushMatrix();
-    {
-        glRotatef(angle,0,0,1);
-        glTranslatef(60,0,0);
-        glRotatef(2*angle,0,0,1);
-        glColor3f(0,0,1);
-        drawSquare(10);
-    }
-    glPopMatrix();
-
-    glRotatef(3*angle,0,0,1);
-    glTranslatef(40,0,0);
-    glRotatef(4*angle,0,0,1);
-    glColor3f(1,1,0);
-    drawSquare(5);
-}
 
 void display(){
 
@@ -452,6 +483,8 @@ void init(){
 	camera_l.x = -1.0/sqrt(2);
 	camera_l.y = -1.0/sqrt(2);
 	camera_l.z = 0;
+
+    currentLen = MAX_LEN*0.75;
 
 	//clear the screen
 	glClearColor(0,0,0,0);
