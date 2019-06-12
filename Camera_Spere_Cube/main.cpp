@@ -26,9 +26,7 @@ public:
 	double x, y, z;
 };
 
-int drawgrid;
 int drawaxes;
-double angle;
 double currentLen;
 
 Point camera_pos;
@@ -79,30 +77,7 @@ void drawAxes(){
 	}
 }
 
-void drawGrid(){
-	int i;
-	if(drawgrid==1){
-		glColor3f(0.6, 0.6, 0.6);	//grey
-		glBegin(GL_LINES);{
-			for(i=-8;i<=8;i++){
-
-				if(i==0)
-					continue;	//SKIP the MAIN axes
-
-				//lines parallel to Y-axis
-				glVertex3f(i*10, -90, 0);
-				glVertex3f(i*10,  90, 0);
-
-				//lines parallel to X-axis
-				glVertex3f(-90, i*10, 0);
-				glVertex3f( 90, i*10, 0);
-			}
-		}glEnd();
-	}
-}
-
 void drawSquare(double a){
-    //glColor3f(1.0,0.0,0.0);
 	glBegin(GL_QUADS);{
 		glVertex3f( a,  a, 0);
 		glVertex3f( a, -a, 0);
@@ -436,6 +411,7 @@ void specialKeyListener(int key, int x,int y){
             camera_pos.y += -camera_l.y*CAMERA_POS_CHANGE;
             camera_pos.z += -camera_l.z*CAMERA_POS_CHANGE;
 			break;
+
 		case GLUT_KEY_UP:		// up arrow key
 //			cameraHeight += 3.0;
             camera_pos.x += camera_l.x*CAMERA_POS_CHANGE;
@@ -449,6 +425,7 @@ void specialKeyListener(int key, int x,int y){
             camera_pos.y += camera_r.y*CAMERA_POS_CHANGE;
             camera_pos.z += camera_r.z*CAMERA_POS_CHANGE;
 			break;
+
 		case GLUT_KEY_LEFT:
 //			cameraAngle -= 0.03;
             camera_pos.x += -camera_r.x*CAMERA_POS_CHANGE;
@@ -461,13 +438,11 @@ void specialKeyListener(int key, int x,int y){
             camera_pos.y += camera_u.y*CAMERA_POS_CHANGE;
             camera_pos.z += camera_u.z*CAMERA_POS_CHANGE;
 			break;
+
 		case GLUT_KEY_PAGE_DOWN:
 		    camera_pos.x += -camera_u.x*CAMERA_POS_CHANGE;
             camera_pos.y += -camera_u.y*CAMERA_POS_CHANGE;
             camera_pos.z += -camera_u.z*CAMERA_POS_CHANGE;
-			break;
-
-		case GLUT_KEY_INSERT:
 			break;
 
 		case GLUT_KEY_HOME:
@@ -476,6 +451,7 @@ void specialKeyListener(int key, int x,int y){
                 currentLen = 0;
 		    }
 			break;
+
 		case GLUT_KEY_END:
 		    currentLen += LEN_CHANGE;
 		    if(currentLen>MAX_LEN){
@@ -495,17 +471,6 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 			if(state == GLUT_DOWN){		// 2 times?? in ONE click? -- solution is checking DOWN or UP
 				drawaxes=1-drawaxes;
 			}
-			break;
-
-		case GLUT_RIGHT_BUTTON:
-		    if(state == GLUT_DOWN){		// 2 times?? in ONE click? -- solution is checking DOWN or UP
-				drawgrid=1-drawgrid;
-			}
-
-			break;
-
-		case GLUT_MIDDLE_BUTTON:
-			//........
 			break;
 
 		default:
@@ -548,7 +513,6 @@ void display(){
 	//add objects
 
 	drawAxes();
-	drawGrid();
 
     drawCubeSphereCylinder();
 
@@ -559,7 +523,6 @@ void display(){
 
 
 void animate(){
-	//angle+=0.05;
 	//codes for any changes in Models, Camera
 
     //printf("From animate\n");
@@ -568,9 +531,7 @@ void animate(){
 
 void init(){
 	//codes for initialization
-	drawgrid=0;
 	drawaxes=1;
-	angle=0;
 
 	camera_pos.x = 100;
 	camera_pos.y = 100;
