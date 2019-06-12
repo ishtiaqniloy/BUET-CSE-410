@@ -7,14 +7,14 @@
 
 #define pi (2*acos(0.0))
 
-#define CAMERA_ANGLE_CHANGE 0.5
+#define CAMERA_ANGLE_CHANGE 0.8
 #define CAMERA_POS_CHANGE 3
 
 #define MAX_LEN 20.0
-#define LEN_CHANGE 0.5
+#define LEN_CHANGE 0.7
 
-#define SPHERE_SLICES 20
-#define SPHERE_STACKS 20
+#define SLICES 50
+#define STACKS 50
 
 class Point{
 public:
@@ -118,11 +118,11 @@ void drawSpherePart(double radius,int slices,int stacks){
 	double h,r;
 	//generate points
 	for(i=0;i<=stacks;i++){
-		h=radius*sin(((double)i/(double)stacks)*(pi/2));
-		r=radius*cos(((double)i/(double)stacks)*(pi/2));
+		h=radius*sin(((double)i/(double)stacks)*(pi*0.5));
+		r=radius*cos(((double)i/(double)stacks)*(pi*0.5));
 		for(j=0;j<=slices;j++){
-			points[i][j].x=r*cos(((double)j/(double)slices)*pi/2.0);
-			points[i][j].y=r*sin(((double)j/(double)slices)*pi/2.0);
+			points[i][j].x=r*cos(((double)j/(double)slices)*pi*0.5);
+			points[i][j].y=r*sin(((double)j/(double)slices)*pi*0.5);
 			points[i][j].z=h;
 		}
 	}
@@ -140,37 +140,40 @@ void drawSpherePart(double radius,int slices,int stacks){
 	}
 }
 
-
-void drawSS()
-{
-    glColor3f(1,0,0);
-    drawSquare(20);
-
-    glRotatef(angle,0,0,1);
-    glTranslatef(110,0,0);
-    glRotatef(2*angle,0,0,1);
-    glColor3f(0,1,0);
-    drawSquare(15);
-
-    glPushMatrix();
-    {
-        glRotatef(angle,0,0,1);
-        glTranslatef(60,0,0);
-        glRotatef(2*angle,0,0,1);
-        glColor3f(0,0,1);
-        drawSquare(10);
-    }
-    glPopMatrix();
-
-    glRotatef(3*angle,0,0,1);
-    glTranslatef(40,0,0);
-    glRotatef(4*angle,0,0,1);
-    glColor3f(1,1,0);
-    drawSquare(5);
+void drawCylinderPart(double radius, double height, int slices,int stacks){
+	Point points[100][100];
+	int i,j;
+	double h;
+	//generate points
+	for(i=0;i<=stacks;i++){
+		h = height*(double)i/(double)stacks;
+		for(j=0;j<=slices;j++){
+			points[i][j].x=radius*cos(((double)j/(double)slices)*pi*0.5);
+			points[i][j].y=radius*sin(((double)j/(double)slices)*pi*0.5);
+			points[i][j].z=h;
+		}
+	}
+	//draw quads using generated points
+	for(i=0;i<stacks;i++){
+		for(j=0;j<slices;j++){
+			glBegin(GL_QUADS);{
+			    //upper half
+				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
+				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
+				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
+				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
+                //lower half
+                glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
+				glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
+				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
+				glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
+			}glEnd();
+		}
+	}
 }
 
 void drawCube(){
-    glColor3f(1, 1, 1);   //white colorx
+    glColor3f(1, 1, 1);   //white color
 
     //up
     glPushMatrix();
@@ -215,30 +218,30 @@ void drawCube(){
 }
 
 void drawSphere(){
-    glColor3f(1, 0, 0);   //white color
+    glColor3f(1, 0, 0);   //red color
 
     //upper half sphere
     glPushMatrix();     //clean stack
     glTranslatef(currentLen, currentLen, currentLen);
-    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
     glPopMatrix();
 
     glPushMatrix();
     glRotatef(90, 0, 0, 1);
     glTranslatef(currentLen, currentLen, currentLen);
-    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
     glPopMatrix();
 
     glPushMatrix();
     glRotatef(180, 0, 0, 1);
     glTranslatef(currentLen, currentLen, currentLen);
-    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
     glPopMatrix();
 
     glPushMatrix();
     glRotatef(270, 0, 0, 1);
     glTranslatef(currentLen, currentLen, currentLen);
-    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
     glPopMatrix();
 
 
@@ -246,30 +249,135 @@ void drawSphere(){
     glPushMatrix();     //clean stack
     glTranslatef(currentLen, currentLen, -currentLen);
     glRotatef(180, 1, 1, 0);
-    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
     glPopMatrix();
 
     glPushMatrix();
     glRotatef(90, 0, 0, 1);
     glTranslatef(currentLen, currentLen, -currentLen);
     glRotatef(180, 1, 1, 0);
-    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
     glPopMatrix();
 
     glPushMatrix();
     glRotatef(180, 0, 0, 1);
     glTranslatef(currentLen, currentLen, -currentLen);
     glRotatef(180, 1, 1, 0);
-    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
     glPopMatrix();
 
     glPushMatrix();
     glRotatef(270, 0, 0, 1);
     glTranslatef(currentLen, currentLen, -currentLen);
     glRotatef(180, 1, 1, 0);
-    drawSpherePart(MAX_LEN - currentLen, SPHERE_SLICES, SPHERE_STACKS);
+    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
     glPopMatrix();
 
+
+}
+
+void drawCylinder(){
+    glColor3f(0, 1, 0);   //green color
+
+    //sides
+    glPushMatrix();
+    glTranslatef(currentLen, currentLen, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(90, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(180, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(270, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+
+
+    //upper parts
+    glPushMatrix();
+    glRotatef(45, 1, 0, 0);
+    glRotatef(45, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    glRotatef(90, 1, 1, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(90, 0, 0, 1);
+    glRotatef(45, 1, 0, 0);
+    glRotatef(45, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    glRotatef(90, 1, 1, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(180, 0, 0, 1);
+    glRotatef(45, 1, 0, 0);
+    glRotatef(45, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    glRotatef(90, 1, 1, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(270, 0, 0, 1);
+    glRotatef(45, 1, 0, 0);
+    glRotatef(45, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    glRotatef(90, 1, 1, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+
+
+    //lower parts
+    glPushMatrix();
+    glRotatef(-45, 1, 0, 0);
+    glRotatef(45, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    glRotatef(90, 1, 1, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(90, 0, 0, 1);
+    glRotatef(-45, 1, 0, 0);
+    glRotatef(45, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    glRotatef(90, 1, 1, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(180, 0, 0, 1);
+    glRotatef(-45, 1, 0, 0);
+    glRotatef(45, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    glRotatef(90, 1, 1, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
+
+    glPushMatrix();
+    glRotatef(270, 0, 0, 1);
+    glRotatef(-45, 1, 0, 0);
+    glRotatef(45, 0, 0, 1);
+    glTranslatef(currentLen, currentLen, 0);
+    glRotatef(90, 1, 1, 0);
+    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
+    glPopMatrix();
 
 }
 
@@ -277,6 +385,7 @@ void drawCubeSphereCylinder()
 {
     drawCube();
     drawSphere();
+    drawCylinder();
 }
 
 
@@ -479,7 +588,7 @@ void init(){
 	camera_l.y = -1.0/sqrt(2);
 	camera_l.z = 0;
 
-    currentLen = MAX_LEN*0.75;
+    currentLen = MAX_LEN*0.50;
 
 	//clear the screen
 	glClearColor(0,0,0,0);
