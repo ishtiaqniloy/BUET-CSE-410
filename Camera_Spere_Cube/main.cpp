@@ -9,6 +9,8 @@
 #define CAMERA_ANGLE_CHANGE 0.5
 #define CAMERA_POS_CHANGE 3
 
+#define MAX_LEN 20
+
 class Point
 {
 public:
@@ -334,7 +336,10 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 			break;
 
 		case GLUT_RIGHT_BUTTON:
-			//........
+		    if(state == GLUT_DOWN){		// 2 times?? in ONE click? -- solution is checking DOWN or UP
+				drawgrid=1-drawgrid;
+			}
+
 			break;
 
 		case GLUT_MIDDLE_BUTTON:
