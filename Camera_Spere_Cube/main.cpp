@@ -130,7 +130,7 @@ void drawSpherePart(double radius,int slices,int stacks){
 	for(i=0;i<stacks;i++){
 		for(j=0;j<slices;j++){
 			glBegin(GL_QUADS);{
-			    //upper hemisphere
+			    //upper part
 				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
 				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
 				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
@@ -221,7 +221,7 @@ void drawSphere(){
     glColor3f(1, 0, 0);   //red color
 
     //upper half sphere
-    glPushMatrix();     //clean stack
+    glPushMatrix();
     glTranslatef(currentLen, currentLen, currentLen);
     drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
     glPopMatrix();
@@ -246,7 +246,7 @@ void drawSphere(){
 
 
     //lower half sphere
-    glPushMatrix();     //clean stack
+    glPushMatrix();
     glTranslatef(currentLen, currentLen, -currentLen);
     glRotatef(180, 1, 1, 0);
     drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
