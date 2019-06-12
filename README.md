@@ -41,8 +41,8 @@ If you maintain pos, u, r, and l in this way, your gluLookAt statement will look
     
     
 2. Sphere to/from Cube (1.exe)
-Home - cube to sphere
-End - sphere to cube
+Home - cube to sphere.
+End - sphere to cube.
 Draw one eighth of a sphere, one fourth of a cylinder and a square once.
 Use transformations (translation, rotation etc.) to put them in the right places.
 
