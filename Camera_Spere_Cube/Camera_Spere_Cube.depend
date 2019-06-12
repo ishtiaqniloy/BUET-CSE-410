@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1560325796 source:d:\drive\l-4 t-1\cse 410 - computer graphics sessional\assignment 1\cse_410_assignment1_camera_sphere_cube\camera_spere_cube\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<windows.h>
+	<glut.h>
+
+1392007564 d:\drive\l-4 t-1\cse 410 - computer graphics sessional\assignment 1\cse_410_assignment1_camera_sphere_cube\camera_spere_cube\opengl\include\glut.h
+	<windows.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
