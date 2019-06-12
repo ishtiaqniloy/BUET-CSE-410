@@ -6,7 +6,7 @@
 #include <glut.h>
 
 #define pi (2*acos(0.0))
-#define CAMERA_ANGLE_CHANGE 0.2
+#define CAMERA_ANGLE_CHANGE 0.5
 #define CAMERA_POS_CHANGE 3
 
 class Point
@@ -27,6 +27,34 @@ double angle;
 
 Point camera_pos;
 Vector camera_u, camera_r, camera_l;
+
+Vector crossProduct(Vector a, Vector b){
+    Vector result;
+
+    result.x = a.y*b.z - b.y*a.z;
+    result.y = a.z*b.x - b.z*a.x;
+    result.z = a.x*b.y - b.x*a.y;
+
+    return result;
+}
+
+Vector rotateVector(Vector v, Vector refer, double rotationAngle){
+    Vector result, perp;
+
+    double radianRotationAngle = rotationAngle*pi/180.0;
+
+    //perp = refer X v
+    //result = v*cos(radianRotationAngle) + perp*sin(radianRotationAngle)
+
+    perp = crossProduct(refer, v);
+
+    result.x = v.x*cos(radianRotationAngle) + perp.x*sin(radianRotationAngle);
+    result.y = v.y*cos(radianRotationAngle) + perp.y*sin(radianRotationAngle);
+    result.z = v.z*cos(radianRotationAngle) + perp.z*sin(radianRotationAngle);
+
+
+    return result;
+}
 
 
 void drawAxes()
@@ -209,7 +237,33 @@ void keyboardListener(unsigned char key, int x,int y){
 	switch(key){
 
 		case '1':
-			drawgrid=1-drawgrid;
+			camera_l = rotateVector(camera_l, camera_u, CAMERA_ANGLE_CHANGE);
+			camera_r = rotateVector(camera_r, camera_u, CAMERA_ANGLE_CHANGE);
+			break;
+
+        case '2':
+			camera_l = rotateVector(camera_l, camera_u, -CAMERA_ANGLE_CHANGE);
+			camera_r = rotateVector(camera_r, camera_u, -CAMERA_ANGLE_CHANGE);
+			break;
+
+        case '3':
+			camera_u = rotateVector(camera_u, camera_r, CAMERA_ANGLE_CHANGE);
+			camera_l = rotateVector(camera_l, camera_r, CAMERA_ANGLE_CHANGE);
+			break;
+
+        case '4':
+			camera_u = rotateVector(camera_u, camera_r, -CAMERA_ANGLE_CHANGE);
+			camera_l = rotateVector(camera_l, camera_r, -CAMERA_ANGLE_CHANGE);
+			break;
+
+        case '5':
+			camera_u = rotateVector(camera_u, camera_l, -CAMERA_ANGLE_CHANGE);
+			camera_r = rotateVector(camera_r, camera_l, -CAMERA_ANGLE_CHANGE);
+			break;
+
+        case '6':
+			camera_u = rotateVector(camera_u, camera_l, CAMERA_ANGLE_CHANGE);
+			camera_r = rotateVector(camera_r, camera_l, CAMERA_ANGLE_CHANGE);
 			break;
 
 		default:
@@ -292,7 +346,33 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 	}
 }
 
+void drawSphereCube()
+{
+    glColor3f(1,0,0);
+    drawSquare(20);
 
+    glRotatef(angle,0,0,1);
+    glTranslatef(110,0,0);
+    glRotatef(2*angle,0,0,1);
+    glColor3f(0,1,0);
+    drawSquare(15);
+
+    glPushMatrix();
+    {
+        glRotatef(angle,0,0,1);
+        glTranslatef(60,0,0);
+        glRotatef(2*angle,0,0,1);
+        glColor3f(0,0,1);
+        drawSquare(10);
+    }
+    glPopMatrix();
+
+    glRotatef(3*angle,0,0,1);
+    glTranslatef(40,0,0);
+    glRotatef(4*angle,0,0,1);
+    glColor3f(1,1,0);
+    drawSquare(5);
+}
 
 void display(){
 
@@ -315,10 +395,6 @@ void display(){
 	//2. where is the camera looking?
 	//3. Which direction is the camera's UP direction?
 
-	//gluLookAt(100,100,100,	0,0,0,	0,0,1);
-	//gluLookAt(200*cos(cameraAngle), 200*sin(cameraAngle), cameraHeight,		0,0,0,		0,0,1);
-	//gluLookAt(0,0,200,	0,0,0,	0,1,0);
-
     gluLookAt(camera_pos.x, camera_pos.y, camera_pos.z,  camera_pos.x+camera_l.x, camera_pos.y+camera_l.y, camera_pos.z+camera_l.z,   camera_u.x, camera_u.y, camera_u.z);
 
 
@@ -334,18 +410,7 @@ void display(){
 	drawAxes();
 	drawGrid();
 
-    //glColor3f(1,0,0);
-    //drawSquare(10);
-
-    drawSS();
-
-    //drawCircle(30,24);
-
-    //drawCone(20,50,24);
-
-	//drawSphere(30,24,20);
-
-    //printf("From display");
+    drawSphereCube();
 
 
 	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
@@ -426,3 +491,18 @@ int main(int argc, char **argv){
 
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

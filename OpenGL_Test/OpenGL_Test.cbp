@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="OpenGL" />
+		<Option title="OpenGL_Test" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -16,11 +16,11 @@
 					<Add directory="OpenGL/include" />
 				</Compiler>
 				<Linker>
-					<Add library="OpenGL\lib\Glaux.lib" />
-					<Add library="OpenGL\lib\GLU32.LIB" />
-					<Add library="OpenGL\lib\glui32.lib" />
-					<Add library="OpenGL\lib\glut32.lib" />
-					<Add library="OpenGL\lib\OPENGL32.LIB" />
+					<Add library="OpenGL/lib/Glaux.lib" />
+					<Add library="OpenGL/lib/GLU32.LIB" />
+					<Add library="OpenGL/lib/glui32.lib" />
+					<Add library="OpenGL/lib/glut32.lib" />
+					<Add library="OpenGL/lib/OPENGL32.LIB" />
 					<Add directory="C:/Users/mrahman/Documents/CodeBlocks Projects/OpenGL/OpenGL/lib" />
 				</Linker>
 				<ExtraCommands>
@@ -46,11 +46,11 @@
 			<Add directory="OpenGL/include" />
 		</Compiler>
 		<Linker>
-			<Add library="OpenGL\lib\Glaux.lib" />
-			<Add library="OpenGL\lib\GLU32.LIB" />
-			<Add library="OpenGL\lib\glui32.lib" />
-			<Add library="OpenGL\lib\glut32.lib" />
-			<Add library="OpenGL\lib\OPENGL32.LIB" />
+			<Add library="OpenGL/lib/Glaux.lib" />
+			<Add library="OpenGL/lib/GLU32.LIB" />
+			<Add library="OpenGL/lib/glui32.lib" />
+			<Add library="OpenGL/lib/glut32.lib" />
+			<Add library="OpenGL/lib/OPENGL32.LIB" />
 		</Linker>
 		<ExtraCommands>
 			<Add after="xcopy /y OpenGL\DLL\glut32.dll $TARGET_OUTPUT_DIR" />
