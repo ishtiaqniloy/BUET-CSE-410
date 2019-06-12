@@ -7,18 +7,26 @@
 
 #define pi (2*acos(0.0))
 #define CAMERA_ANGLE_CHANGE 0.2
+#define CAMERA_POS_CHANGE 3
 
-class point
+class Point
 {
 public:
 	double x, y, z;
 };
 
-double cameraHeight;
-double cameraAngle;
+class Vector
+{
+public:
+	double x, y, z;
+};
+
 int drawgrid;
 int drawaxes;
 double angle;
+
+Point camera_pos;
+Vector camera_u, camera_r, camera_l;
 
 
 void drawAxes()
@@ -79,7 +87,7 @@ void drawSquare(double a)
 void drawCircle(double radius,int segments)
 {
     int i;
-    struct point points[100];
+    Point points[100];
     glColor3f(0.7,0.7,0.7);
     //generate points
     for(i=0;i<=segments;i++)
@@ -103,7 +111,7 @@ void drawCone(double radius,double height,int segments)
 {
     int i;
     double shade;
-    struct point points[100];
+    Point points[100];
     //generate points
     for(i=0;i<=segments;i++)
     {
@@ -131,7 +139,7 @@ void drawCone(double radius,double height,int segments)
 
 void drawSphere(double radius,int slices,int stacks)
 {
-	struct point points[100][100];
+	Point points[100][100];
 	int i,j;
 	double h,r;
 	//generate points
@@ -213,22 +221,40 @@ void keyboardListener(unsigned char key, int x,int y){
 void specialKeyListener(int key, int x,int y){
 	switch(key){
 		case GLUT_KEY_DOWN:		//down arrow key
-			cameraHeight -= 3.0;
+//			cameraHeight -= 3.0;
+            camera_pos.x += -camera_l.x*CAMERA_POS_CHANGE;
+            camera_pos.y += -camera_l.y*CAMERA_POS_CHANGE;
+            camera_pos.z += -camera_l.z*CAMERA_POS_CHANGE;
 			break;
 		case GLUT_KEY_UP:		// up arrow key
-			cameraHeight += 3.0;
+//			cameraHeight += 3.0;
+            camera_pos.x += camera_l.x*CAMERA_POS_CHANGE;
+            camera_pos.y += camera_l.y*CAMERA_POS_CHANGE;
+            camera_pos.z += camera_l.z*CAMERA_POS_CHANGE;
 			break;
 
 		case GLUT_KEY_RIGHT:
-			cameraAngle += 0.03;
+//			cameraAngle += 0.03;
+            camera_pos.x += camera_r.x*CAMERA_POS_CHANGE;
+            camera_pos.y += camera_r.y*CAMERA_POS_CHANGE;
+            camera_pos.z += camera_r.z*CAMERA_POS_CHANGE;
 			break;
 		case GLUT_KEY_LEFT:
-			cameraAngle -= 0.03;
+//			cameraAngle -= 0.03;
+            camera_pos.x += -camera_r.x*CAMERA_POS_CHANGE;
+            camera_pos.y += -camera_r.y*CAMERA_POS_CHANGE;
+            camera_pos.z += -camera_r.z*CAMERA_POS_CHANGE;
 			break;
 
 		case GLUT_KEY_PAGE_UP:
+            camera_pos.x += camera_u.x*CAMERA_POS_CHANGE;
+            camera_pos.y += camera_u.y*CAMERA_POS_CHANGE;
+            camera_pos.z += camera_u.z*CAMERA_POS_CHANGE;
 			break;
 		case GLUT_KEY_PAGE_DOWN:
+		    camera_pos.x += -camera_u.x*CAMERA_POS_CHANGE;
+            camera_pos.y += -camera_u.y*CAMERA_POS_CHANGE;
+            camera_pos.z += -camera_u.z*CAMERA_POS_CHANGE;
 			break;
 
 		case GLUT_KEY_INSERT:
@@ -291,7 +317,9 @@ void display(){
 
 	//gluLookAt(100,100,100,	0,0,0,	0,0,1);
 	//gluLookAt(200*cos(cameraAngle), 200*sin(cameraAngle), cameraHeight,		0,0,0,		0,0,1);
-	gluLookAt(0,0,200,	0,0,0,	0,1,0);
+	//gluLookAt(0,0,200,	0,0,0,	0,1,0);
+
+    gluLookAt(camera_pos.x, camera_pos.y, camera_pos.z,  camera_pos.x+camera_l.x, camera_pos.y+camera_l.y, camera_pos.z+camera_l.z,   camera_u.x, camera_u.y, camera_u.z);
 
 
 	//again select MODEL-VIEW
@@ -317,7 +345,7 @@ void display(){
 
 	//drawSphere(30,24,20);
 
-
+    //printf("From display");
 
 
 	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
@@ -328,6 +356,8 @@ void display(){
 void animate(){
 	//angle+=0.05;
 	//codes for any changes in Models, Camera
+
+    //printf("From animate\n");
 	glutPostRedisplay();
 }
 
@@ -335,9 +365,23 @@ void init(){
 	//codes for initialization
 	drawgrid=0;
 	drawaxes=1;
-	cameraHeight=150.0;
-	cameraAngle=1.0;
 	angle=0;
+
+	camera_pos.x = 100;
+	camera_pos.y = 100;
+	camera_pos.z = 50;
+
+	camera_u.x = 0;
+	camera_u.y = 0;
+	camera_u.z = 1;
+
+	camera_r.x = -1.0/sqrt(2);
+	camera_r.y = 1.0/sqrt(2);
+	camera_r.z = 0;
+
+	camera_l.x = -1.0/sqrt(2);
+	camera_l.y = -1.0/sqrt(2);
+	camera_l.z = 0;
 
 	//clear the screen
 	glClearColor(0,0,0,0);
@@ -361,11 +405,11 @@ void init(){
 
 int main(int argc, char **argv){
 	glutInit(&argc,argv);
-	glutInitWindowSize(500, 500);
-	glutInitWindowPosition(0, 0);
+	glutInitWindowSize(650, 650);
+	glutInitWindowPosition(50, 50);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGB);	//Depth, Double buffer, RGB color
 
-	glutCreateWindow("My OpenGL Program");
+	glutCreateWindow("Fully Controllable Camera & Sphere to/from Cube");
 
 	init();
 
