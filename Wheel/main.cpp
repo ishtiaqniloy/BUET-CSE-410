@@ -84,7 +84,6 @@ void drawAxes(){
 	}
 }
 
-
 void drawGrid(){
 	int i;
 	if(drawgrid==1){
@@ -106,6 +105,7 @@ void drawGrid(){
 		}glEnd();
 	}
 }
+
 
 void drawAxle(double radius, double width){
     glColor3f(0.7,0.7,0.7);
@@ -187,6 +187,9 @@ void keyboardListener(unsigned char key, int x,int y){
 
             wheelRotationAngle+=WHEEL_FORWARD_MOVE_ANGLE;
 
+            //if(wheelRotationAngle >= 360){
+            //    printf("%f %f\n", wheelRotationAngle, wheelCenter.x);
+            //}
 
 			break;
 
@@ -326,13 +329,9 @@ void display(){
 
     drawAxle(WHEEL_RADIUS, 0.3*WHEEL_WIDTH);
 
-    //glPushMatrix();
-
-    glRotatef(90, 1, 0, 0);
+    glRotatef(90, 1, 0, 0); //to rotate the wheel only
     //drawWheelWithLines(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
     drawWheelWithQuads(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
-
-    //glPopMatrix();
 
 
 
@@ -387,7 +386,7 @@ void init(){
 }
 
 int main(int argc, char **argv){
-    printf("%f %f", WHEEL_FORWARD_MOVE_ANGLE, WHEEL_FORWARD_MOVE_DISTANCE);
+    printf("%f %f\n", WHEEL_FORWARD_MOVE_ANGLE, WHEEL_FORWARD_MOVE_DISTANCE);
 
 	glutInit(&argc,argv);
 	glutInitWindowSize(500, 500);
