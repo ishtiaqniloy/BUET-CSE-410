@@ -11,7 +11,7 @@
 #define STACKS 50
 
 #define WHEEL_RADIUS 20
-#define WHEEL_WIDTH 5
+#define WHEEL_WIDTH 10
 
 #define WHEEL_FORWARD_MOVE_ANGLE 3.0
 #define WHEEL_FORWARD_MOVE_DISTANCE (WHEEL_RADIUS*WHEEL_FORWARD_MOVE_ANGLE*pi/180.0)
@@ -127,24 +127,28 @@ void drawAxle(double radius, double width){
 }
 
 
-void drawCircle(double radius,int segments){
+void drawCircle(double radius, double width, int slices, int stacks){
     int i;
     Point points[100];
     glColor3f(0.7,0.7,0.7);
     //generate points
-    for(i=0;i<=segments;i++){
-        points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
-        points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
+    for(i=0;i<=slices;i++){
+        points[i].x=radius*cos(((double)i/(double)slices)*2*pi);
+        points[i].y=radius*sin(((double)i/(double)slices)*2*pi);
     }
     //draw segments using generated points
-    for(i=0;i<segments;i++){
-        glBegin(GL_LINES);
-        {
-			glVertex3f(points[i].x,points[i].y,0);
-			glVertex3f(points[i+1].x,points[i+1].y,0);
+    for(int k = -stacks/2; k < stacks/2; k++){
+        for(i=0;i<slices;i++){
+            glColor3f((double)i/(double)slices,(double)i/(double)slices,(double)i/(double)slices);
+            glBegin(GL_LINES);
+            {
+                glVertex3f(points[i].x,points[i].y, k*width/stacks);
+                glVertex3f(points[i+1].x,points[i+1].y, k*width/stacks);
+            }
+            glEnd();
         }
-        glEnd();
     }
+
 }
 
 
@@ -183,38 +187,26 @@ void drawSphere(double radius,int slices,int stacks){
 }
 
 void drawWheel(double radius, double width, int slices,int stacks){
-	Point points[100][100];
-	int i,j;
-	double h,r;
-	//generate points
-	for(i=0;i<=stacks;i++){
-		h=radius*sin(((double)i/(double)stacks)*(pi/2));
-		r=radius*cos(((double)i/(double)stacks)*(pi/2));
-		r=width;
-		for(j=0;j<=slices;j++){
-			points[i][j].x=r*cos(((double)j/(double)slices)*2*pi);
-			points[i][j].y=r*sin(((double)j/(double)slices)*2*pi);
-			points[i][j].z=h;
-		}
-	}
-	//draw quads using generated points
-	for(i=0;i<stacks;i++){
-        glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
-		for(j=0;j<slices;j++){
-			glBegin(GL_QUADS);{
-			    //upper hemisphere
-				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
-                //lower hemisphere
-                glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
-			}glEnd();
-		}
-	}
+	int i;
+    Point points[100];
+    glColor3f(0.7,0.7,0.7);
+    //generate points
+    for(i=0;i<=slices;i++){
+        points[i].x=radius*cos(((double)i/(double)slices)*2*pi);
+        points[i].y=radius*sin(((double)i/(double)slices)*2*pi);
+    }
+    //draw segments using generated points
+    for(int k = -stacks/2; k < stacks/2; k++){
+        for(i=0;i<slices;i++){
+            glColor3f((double)i/(double)slices,(double)i/(double)slices,(double)i/(double)slices);
+            glBegin(GL_LINES);
+            {
+                glVertex3f(points[i].x,points[i].y, k*width/stacks);
+                glVertex3f(points[i+1].x,points[i+1].y, k*width/stacks);
+            }
+            glEnd();
+        }
+    }
 }
 
 void keyboardListener(unsigned char key, int x,int y){
@@ -365,8 +357,15 @@ void display(){
     glRotatef(wheelAngleX, 0, 0, 1);
     glRotatef(wheelRotationAngle, 0, 1, 0);
 
-    drawAxle(WHEEL_RADIUS, 0.5*WHEEL_WIDTH);
-    //drawWheel(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
+    drawAxle(WHEEL_RADIUS, 0.3*WHEEL_WIDTH);
+
+    glPushMatrix();
+    glRotatef(90, 1, 0, 0);
+    //drawCircle(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
+    drawWheel(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
+    glPopMatrix();
+
+
 
 	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
 	glutSwapBuffers();
