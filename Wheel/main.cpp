@@ -13,9 +13,9 @@
 #define WHEEL_RADIUS 20
 #define WHEEL_WIDTH 5
 
-#define WHEEL_FORWARD_MOVE_ANGLE 3
+#define WHEEL_FORWARD_MOVE_ANGLE 3.0
 #define WHEEL_FORWARD_MOVE_DISTANCE (WHEEL_RADIUS*WHEEL_FORWARD_MOVE_ANGLE*pi/180.0)
-#define WHEEL_ROTATION_ANGLE 0.5
+#define WHEEL_ANGLEX_CHANGE 1.0
 
 class Point{
 public:
@@ -108,20 +108,20 @@ void drawGrid(){
 	}
 }
 
-void drawAxle(){
+void drawAxle(double radius, double width){
     glColor3f(0.7,0.7,0.7);
 	glBegin(GL_QUADS);{
-		glVertex3f(0, WHEEL_WIDTH, WHEEL_RADIUS);
-		glVertex3f(0, -WHEEL_WIDTH, WHEEL_RADIUS);
-		glVertex3f(0, -WHEEL_WIDTH, -WHEEL_RADIUS);
-		glVertex3f(0, WHEEL_WIDTH, -WHEEL_RADIUS);
+		glVertex3f(0, width, radius);
+		glVertex3f(0, -width, radius);
+		glVertex3f(0, -width, -radius);
+		glVertex3f(0, width, -radius);
 	}glEnd();
 
 	glBegin(GL_QUADS);{
-		glVertex3f(-WHEEL_RADIUS, -WHEEL_WIDTH, 0);
-		glVertex3f(-WHEEL_RADIUS,  WHEEL_WIDTH, 0);
-		glVertex3f( WHEEL_RADIUS,  WHEEL_WIDTH, 0);
-		glVertex3f( WHEEL_RADIUS, -WHEEL_WIDTH, 0);
+		glVertex3f(-radius, -width, 0);
+		glVertex3f(-radius,  width, 0);
+		glVertex3f( radius,  width, 0);
+		glVertex3f( radius, -width, 0);
 	}glEnd();
 
 }
@@ -190,6 +190,7 @@ void drawWheel(double radius, double width, int slices,int stacks){
 	for(i=0;i<=stacks;i++){
 		h=radius*sin(((double)i/(double)stacks)*(pi/2));
 		r=radius*cos(((double)i/(double)stacks)*(pi/2));
+		r=width;
 		for(j=0;j<=slices;j++){
 			points[i][j].x=r*cos(((double)j/(double)slices)*2*pi);
 			points[i][j].y=r*sin(((double)j/(double)slices)*2*pi);
@@ -220,18 +221,45 @@ void keyboardListener(unsigned char key, int x,int y){
 	switch(key){
 
 		case 'w':
+            //center change
+            wheelCenter.x += wheelFront.x*WHEEL_FORWARD_MOVE_DISTANCE;
+            wheelCenter.y += wheelFront.y*WHEEL_FORWARD_MOVE_DISTANCE;
+            wheelCenter.z += wheelFront.z*WHEEL_FORWARD_MOVE_DISTANCE;
+
+            wheelRotationAngle+=WHEEL_FORWARD_MOVE_ANGLE;
+
 
 			break;
 
 		case 's':
+            //center change
+            wheelCenter.x -= wheelFront.x*WHEEL_FORWARD_MOVE_DISTANCE;
+            wheelCenter.y -= wheelFront.y*WHEEL_FORWARD_MOVE_DISTANCE;
+            wheelCenter.z -= wheelFront.z*WHEEL_FORWARD_MOVE_DISTANCE;
+
+            wheelRotationAngle-=WHEEL_FORWARD_MOVE_ANGLE;
 
 			break;
 
 		case 'a':
+            wheelAngleX += WHEEL_ANGLEX_CHANGE;
+
+            Vector refer;
+            refer.x = 0;
+            refer.y = 0;
+            refer.z = 1;
+            wheelFront = rotateVector(wheelFront, refer, WHEEL_ANGLEX_CHANGE);
 
 			break;
 
 		case 'd':
+            wheelAngleX -= WHEEL_ANGLEX_CHANGE;
+
+            Vector refer2;
+            refer2.x = 0;
+            refer2.y = 0;
+            refer2.z = 1;
+            wheelFront = rotateVector(wheelFront, refer2, -WHEEL_ANGLEX_CHANGE);
 
 			break;
 
@@ -333,7 +361,11 @@ void display(){
 	drawGrid();
 
 
-    drawAxle();
+    glTranslatef(wheelCenter.x, wheelCenter.y, wheelCenter.z);
+    glRotatef(wheelAngleX, 0, 0, 1);
+    glRotatef(wheelRotationAngle, 0, 1, 0);
+
+    drawAxle(WHEEL_RADIUS, 0.5*WHEEL_WIDTH);
     //drawWheel(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
 
 	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
@@ -360,7 +392,7 @@ void init(){
 
 	wheelCenter.x = 0;
 	wheelCenter.y = 0;
-	wheelCenter.z = 5;
+	wheelCenter.z = WHEEL_RADIUS;
 
     wheelFront.x = 1;
     wheelFront.y = 0;
@@ -388,7 +420,7 @@ void init(){
 }
 
 int main(int argc, char **argv){
-    printf("%d %f", WHEEL_FORWARD_MOVE_ANGLE, WHEEL_FORWARD_MOVE_DISTANCE);
+    printf("%f %f", WHEEL_FORWARD_MOVE_ANGLE, WHEEL_FORWARD_MOVE_DISTANCE);
 
 	glutInit(&argc,argv);
 	glutInitWindowSize(500, 500);
