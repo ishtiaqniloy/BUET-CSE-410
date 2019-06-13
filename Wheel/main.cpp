@@ -10,8 +10,8 @@
 #define SLICES 50
 #define STACKS 50
 
-#define WHEEL_RADIUS 10
-#define WHEEL_HALF_WIDTH 3
+#define WHEEL_RADIUS 20
+#define WHEEL_WIDTH 5
 
 #define WHEEL_FORWARD_MOVE_ANGLE 3
 #define WHEEL_FORWARD_MOVE_DISTANCE (WHEEL_RADIUS*WHEEL_FORWARD_MOVE_ANGLE*pi/180.0)
@@ -35,9 +35,38 @@ int drawaxes;
 double angle;
 
 Point wheelCenter;
+Vector wheelFront;
 double wheelAngleX;
 double wheelRotationAngle;
 
+
+Vector crossProduct(Vector a, Vector b){
+    Vector result;
+
+    result.x = a.y*b.z - b.y*a.z;
+    result.y = a.z*b.x - b.z*a.x;
+    result.z = a.x*b.y - b.x*a.y;
+
+    return result;
+}
+
+Vector rotateVector(Vector v, Vector refer, double rotationAngle){
+    Vector result, perp;
+
+    double radianRotationAngle = rotationAngle*pi/180.0;
+
+    //perp = refer X v
+    //result = v*cos(radianRotationAngle) + perp*sin(radianRotationAngle)
+
+    perp = crossProduct(refer, v);
+
+    result.x = v.x*cos(radianRotationAngle) + perp.x*sin(radianRotationAngle);
+    result.y = v.y*cos(radianRotationAngle) + perp.y*sin(radianRotationAngle);
+    result.z = v.z*cos(radianRotationAngle) + perp.z*sin(radianRotationAngle);
+
+
+    return result;
+}
 
 
 void drawAxes(){
@@ -79,14 +108,22 @@ void drawGrid(){
 	}
 }
 
-void drawSquare(double a){
-    //glColor3f(1.0,0.0,0.0);
+void drawAxle(){
+    glColor3f(0.7,0.7,0.7);
 	glBegin(GL_QUADS);{
-		glVertex3f( a, a,10);
-		glVertex3f( a,-a,10);
-		glVertex3f(-a,-a,10);
-		glVertex3f(-a, a,10);
+		glVertex3f(0, WHEEL_WIDTH, WHEEL_RADIUS);
+		glVertex3f(0, -WHEEL_WIDTH, WHEEL_RADIUS);
+		glVertex3f(0, -WHEEL_WIDTH, -WHEEL_RADIUS);
+		glVertex3f(0, WHEEL_WIDTH, -WHEEL_RADIUS);
 	}glEnd();
+
+	glBegin(GL_QUADS);{
+		glVertex3f(-WHEEL_RADIUS, -WHEEL_WIDTH, 0);
+		glVertex3f(-WHEEL_RADIUS,  WHEEL_WIDTH, 0);
+		glVertex3f( WHEEL_RADIUS,  WHEEL_WIDTH, 0);
+		glVertex3f( WHEEL_RADIUS, -WHEEL_WIDTH, 0);
+	}glEnd();
+
 }
 
 
@@ -103,32 +140,6 @@ void drawCircle(double radius,int segments){
     for(i=0;i<segments;i++){
         glBegin(GL_LINES);
         {
-			glVertex3f(points[i].x,points[i].y,0);
-			glVertex3f(points[i+1].x,points[i+1].y,0);
-        }
-        glEnd();
-    }
-}
-
-void drawCone(double radius,double height,int segments){
-    int i;
-    double shade;
-    Point points[100];
-    //generate points
-    for(i=0;i<=segments;i++){
-        points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
-        points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
-    }
-    //draw triangles using generated points
-    for(i=0;i<segments;i++){
-        //create shading effect
-        if(i<segments/2)shade=2*(double)i/(double)segments;
-        else shade=2*(1.0-(double)i/(double)segments);
-        glColor3f(shade,shade,shade);
-
-        glBegin(GL_TRIANGLES);
-        {
-            glVertex3f(0,0,height);
 			glVertex3f(points[i].x,points[i].y,0);
 			glVertex3f(points[i+1].x,points[i+1].y,0);
         }
@@ -171,7 +182,7 @@ void drawSphere(double radius,int slices,int stacks){
 	}
 }
 
-void drawWheel(double radius,int slices,int stacks){
+void drawWheel(double radius, double width, int slices,int stacks){
 	Point points[100][100];
 	int i,j;
 	double h,r;
@@ -203,35 +214,6 @@ void drawWheel(double radius,int slices,int stacks){
 			}glEnd();
 		}
 	}
-}
-
-
-void drawSS()
-{
-    glColor3f(1,0,0);
-    drawSquare(20);
-
-    glRotatef(angle,0,0,1);
-    glTranslatef(110,0,0);
-    glRotatef(2*angle,0,0,1);
-    glColor3f(0,1,0);
-    drawSquare(15);
-
-    glPushMatrix();
-    {
-        glRotatef(angle,0,0,1);
-        glTranslatef(60,0,0);
-        glRotatef(2*angle,0,0,1);
-        glColor3f(0,0,1);
-        drawSquare(10);
-    }
-    glPopMatrix();
-
-    glRotatef(3*angle,0,0,1);
-    glTranslatef(40,0,0);
-    glRotatef(4*angle,0,0,1);
-    glColor3f(1,1,0);
-    drawSquare(5);
 }
 
 void keyboardListener(unsigned char key, int x,int y){
@@ -350,16 +332,9 @@ void display(){
 	drawAxes();
 	drawGrid();
 
-    //glColor3f(1,0,0);
-    //drawSquare(10);
 
-    //drawSS();
-
-    //drawCircle(30,24);
-
-    //drawCone(20,50,24);
-
-	drawSphere(30,24,20);
+    drawAxle();
+    //drawWheel(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
 
 	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
 	glutSwapBuffers();
@@ -382,9 +357,15 @@ void init(){
 
 	wheelAngleX = 0;
 	wheelRotationAngle = 0;
+
 	wheelCenter.x = 0;
 	wheelCenter.y = 0;
 	wheelCenter.z = 5;
+
+    wheelFront.x = 1;
+    wheelFront.y = 0;
+    wheelFront.z = 0;
+
 
 	//clear the screen
 	glClearColor(0,0,0,0);
