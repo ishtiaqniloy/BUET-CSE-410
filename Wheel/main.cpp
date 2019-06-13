@@ -32,7 +32,6 @@ double cameraHeight;
 double cameraAngle;
 int drawgrid;
 int drawaxes;
-double angle;
 
 Point wheelCenter;
 Vector wheelFront;
@@ -127,7 +126,7 @@ void drawAxle(double radius, double width){
 }
 
 
-void drawCircle(double radius, double width, int slices, int stacks){
+void drawWheelWithQuads(double radius, double width, int slices, int stacks){
     int i;
     Point points[100];
     glColor3f(0.7,0.7,0.7);
@@ -140,10 +139,13 @@ void drawCircle(double radius, double width, int slices, int stacks){
     for(int k = -stacks/2; k < stacks/2; k++){
         for(i=0;i<slices;i++){
             glColor3f((double)i/(double)slices,(double)i/(double)slices,(double)i/(double)slices);
-            glBegin(GL_LINES);
+            glBegin(GL_QUADS);
             {
                 glVertex3f(points[i].x,points[i].y, k*width/stacks);
                 glVertex3f(points[i+1].x,points[i+1].y, k*width/stacks);
+                glVertex3f(points[i+1].x,points[i+1].y, (k+1)*width/stacks);
+                glVertex3f(points[i].x,points[i].y, (k+1)*width/stacks);
+
             }
             glEnd();
         }
@@ -151,42 +153,7 @@ void drawCircle(double radius, double width, int slices, int stacks){
 
 }
 
-
-void drawSphere(double radius,int slices,int stacks){
-	Point points[100][100];
-	int i,j;
-	double h,r;
-	//generate points
-	for(i=0;i<=stacks;i++){
-		h=radius*sin(((double)i/(double)stacks)*(pi/2));
-		r=radius*cos(((double)i/(double)stacks)*(pi/2));
-		for(j=0;j<=slices;j++){
-			points[i][j].x=r*cos(((double)j/(double)slices)*2*pi);
-			points[i][j].y=r*sin(((double)j/(double)slices)*2*pi);
-			points[i][j].z=h;
-		}
-	}
-	//draw quads using generated points
-	for(i=0;i<stacks;i++){
-        glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
-		for(j=0;j<slices;j++){
-			glBegin(GL_QUADS);{
-			    //upper hemisphere
-				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
-                //lower hemisphere
-                glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
-			}glEnd();
-		}
-	}
-}
-
-void drawWheel(double radius, double width, int slices,int stacks){
+void drawWheelWithLines(double radius, double width, int slices,int stacks){
 	int i;
     Point points[100];
     glColor3f(0.7,0.7,0.7);
@@ -359,11 +326,13 @@ void display(){
 
     drawAxle(WHEEL_RADIUS, 0.3*WHEEL_WIDTH);
 
-    glPushMatrix();
+    //glPushMatrix();
+
     glRotatef(90, 1, 0, 0);
-    //drawCircle(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
-    drawWheel(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
-    glPopMatrix();
+    //drawWheelWithLines(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
+    drawWheelWithQuads(WHEEL_RADIUS, WHEEL_WIDTH, SLICES, STACKS);
+
+    //glPopMatrix();
 
 
 
@@ -384,7 +353,6 @@ void init(){
 	drawaxes=1;
 	cameraHeight=150.0;
 	cameraAngle=1.0;
-	angle=0;
 
 	wheelAngleX = 0;
 	wheelRotationAngle = 0;
