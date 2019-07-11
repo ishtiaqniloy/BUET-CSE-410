@@ -272,9 +272,9 @@ public:
 
     Vector operator - (Point const &obj) {
         Vector result;
-        result.x = obj.x - x;
-        result.y = obj.y - y;
-        result.z = obj.z - z;
+        result.x = x - obj.x;
+        result.y = y - obj.y;
+        result.z = z - obj.z;
 
         return result;
     }
