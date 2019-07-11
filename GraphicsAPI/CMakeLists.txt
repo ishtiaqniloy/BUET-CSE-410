@@ -3,4 +3,4 @@ project(GraphicsAPI)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(GraphicsAPI main.cpp Matrix.h)
+add_executable(GraphicsAPI main.cpp)
