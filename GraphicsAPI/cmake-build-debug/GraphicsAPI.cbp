@@ -80,9 +80,6 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="D:/Drive/L-4 T-1/CSE 410 - Computer Graphics Sessional/Assignment 2/CSE_410_Assignment2_GraphicsAPI/GraphicsAPI/Matrix.h">
-			<Option target="GraphicsAPI"/>
-		</Unit>
 		<Unit filename="D:/Drive/L-4 T-1/CSE 410 - Computer Graphics Sessional/Assignment 2/CSE_410_Assignment2_GraphicsAPI/GraphicsAPI/main.cpp">
 			<Option target="GraphicsAPI"/>
 		</Unit>
