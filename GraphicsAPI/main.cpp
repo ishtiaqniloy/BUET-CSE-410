@@ -91,6 +91,13 @@ public:
         arr[i][j] = val;
     }
 
+    T getVal(int i, int j){
+        if(i >= n || j >= m){
+            return 1;
+        }
+        return arr[i][j];
+    }
+
     Matrix operator + (Matrix const &obj) {
         if(n != obj.n || m != obj.m){
             printf("SIZE MISMATCH!!!");
@@ -391,8 +398,8 @@ int main() {
 
 
     double fovX = fovY * aspectRatio;
-    double t = near * tan(fovY/2);
-    double r = near * tan(fovX/2);
+    double t = near * tan(fovY/2.0);
+    double r = near * tan(fovX/2.0);
 
     Matrix <double > P(HOMOGENEOUS_DIM, HOMOGENEOUS_DIM, false);
     P.setVal(0, 0, near/r);
@@ -427,22 +434,38 @@ int main() {
                 pointMatrix.setVal(2, 0, p.z);
                 pointMatrix.setVal(3, 0, 1);
 
+                double w = 0;
+
                 Matrix <double > stage1Matrix = transformationMatrix*pointMatrix;
+                w = stage1Matrix.getVal(HOMOGENEOUS_DIM-1, 0);
+                stage1Matrix.setVal(0, 0, stage1Matrix.getVal(0, 0)/w);
+                stage1Matrix.setVal(1, 0, stage1Matrix.getVal(1, 0)/w);
+                stage1Matrix.setVal(2, 0, stage1Matrix.getVal(2, 0)/w);
+
                 Matrix <double > stage2Matrix = V*stage1Matrix;
+                w = stage2Matrix.getVal(HOMOGENEOUS_DIM-1, 0);
+                stage2Matrix.setVal(0, 0, stage2Matrix.getVal(0, 0)/w);
+                stage2Matrix.setVal(1, 0, stage2Matrix.getVal(1, 0)/w);
+                stage2Matrix.setVal(2, 0, stage2Matrix.getVal(2, 0)/w);
+
                 Matrix <double > stage3Matrix = P*stage2Matrix;
+                w = stage3Matrix.getVal(HOMOGENEOUS_DIM-1, 0);
+                stage3Matrix.setVal(0, 0, stage3Matrix.getVal(0, 0)/w);
+                stage3Matrix.setVal(1, 0, stage3Matrix.getVal(1, 0)/w);
+                stage3Matrix.setVal(2, 0, stage3Matrix.getVal(2, 0)/w);
 
 //                printf("\npointMatrix Matrix:");
 //                pointMatrix.printMatrix();
 
-                fprintf(stage1File, "%lf %lf %lf\n", stage1Matrix.getArr()[0][0], stage1Matrix.getArr()[1][0], stage1Matrix.getArr()[2][0]);
+                fprintf(stage1File, "%lf %lf %lf\n", stage1Matrix.getVal(0,0), stage1Matrix.getVal(1,0), stage1Matrix.getVal(2,0));
 //                printf("\nstage1Matrix Matrix:");
 //                stage1Matrix.printMatrix();
 
-                fprintf(stage2File, "%lf %lf %lf\n", stage2Matrix.getArr()[0][0], stage2Matrix.getArr()[1][0], stage2Matrix.getArr()[2][0]);
+                fprintf(stage2File, "%lf %lf %lf\n", stage2Matrix.getVal(0,0), stage2Matrix.getVal(1,0), stage2Matrix.getVal(2,0));
 //                printf("\nstage2Matrix Matrix:");
 //                stage2Matrix.printMatrix();
 
-                fprintf(stage3File, "%lf %lf %lf\n", stage3Matrix.getArr()[0][0], stage3Matrix.getArr()[1][0], stage3Matrix.getArr()[2][0]);
+                fprintf(stage3File, "%lf %lf %lf\n", stage3Matrix.getVal(0,0), stage3Matrix.getVal(1,0), stage3Matrix.getVal(2,0));
 //                printf("\nstage3Matrix Matrix:");
 //                stage3Matrix.printMatrix();
 

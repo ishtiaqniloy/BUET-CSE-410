@@ -35,12 +35,13 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="86">
-              <caret line="348" column="31" selection-start-line="348" selection-start-column="31" selection-end-line="348" selection-end-column="31" />
+            <state relative-caret-position="51">
+              <caret line="451" selection-start-line="451" selection-end-line="451" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
                 <element signature="e#156#168#0" expanded="true" />
                 <element signature="e#169#5331#1" />
+                <element signature="e#231#670#0" />
                 <element signature="e#5569#5612#1" />
                 <element signature="e#5555#5597#1" />
                 <element signature="e#5553#5737#0" />
@@ -67,8 +68,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage2.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="136">
-              <caret line="8" column="27" lean-forward="true" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
+            <state>
+              <caret column="28" lean-forward="true" selection-start-column="28" selection-end-column="28" />
             </state>
           </provider>
         </entry>
@@ -169,12 +170,12 @@
       <updated>1562745075764</updated>
       <workItem from="1562745085911" duration="5101000" />
       <workItem from="1562767569463" duration="308000" />
-      <workItem from="1562858006383" duration="10678000" />
+      <workItem from="1562858006383" duration="11734000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="16087000" />
+    <option name="totallyTimeSpent" value="17143000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
@@ -222,9 +223,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage1.txt">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/cmake-build-debug/scene.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="68">
@@ -232,24 +230,28 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage2.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="8" column="27" lean-forward="true" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage1.txt">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage3.txt">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
+    <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage2.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="28" lean-forward="true" selection-start-column="28" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="86">
-          <caret line="348" column="31" selection-start-line="348" selection-start-column="31" selection-end-line="348" selection-end-column="31" />
+        <state relative-caret-position="51">
+          <caret line="451" selection-start-line="451" selection-end-line="451" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
             <element signature="e#156#168#0" expanded="true" />
             <element signature="e#169#5331#1" />
+            <element signature="e#231#670#0" />
             <element signature="e#5569#5612#1" />
             <element signature="e#5555#5597#1" />
             <element signature="e#5553#5737#0" />
