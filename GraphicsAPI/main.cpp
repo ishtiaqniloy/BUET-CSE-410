@@ -9,7 +9,7 @@
 #include <stack>
 
 #define pi (2*acos(0.0))
-#define dim 4
+#define HOMOGENEOUS_DIM 4
 
 using namespace std;
 
@@ -315,7 +315,7 @@ Vector rotateVector(Vector v, Vector refer, double rotationAngle){
 int main() {
 
     stack <Matrix<double >> saveStack;
-    Matrix <double> transformationMatrix(dim, dim, true);
+    Matrix <double> transformationMatrix(HOMOGENEOUS_DIM, HOMOGENEOUS_DIM, true);
 
     printf("Initial Transformation Matrix:");
     transformationMatrix.printMatrix();
@@ -330,47 +330,49 @@ int main() {
         exit(0);
     }
 
-    //gluLookAt parameters
-    Point eyePos, lookPos;
-    Vector upVector;
+//=======================================================================================================
+//View Transformation
+//=======================================================================================================
 
-    fscanf(sceneFile, "%lf %lf %lf", &eyePos.x, &eyePos.y, &eyePos.z);
-    fscanf(sceneFile, "%lf %lf %lf", &lookPos.x, &lookPos.y, &lookPos.z);
-    fscanf(sceneFile, "%lf %lf %lf", &upVector.x, &upVector.y, &upVector.z);
+    //gluLookAt parameters
+    Point eye, look;
+    Vector up;
+
+    fscanf(sceneFile, "%lf %lf %lf", &eye.x, &eye.y, &eye.z);
+    fscanf(sceneFile, "%lf %lf %lf", &look.x, &look.y, &look.z);
+    fscanf(sceneFile, "%lf %lf %lf", &up.x, &up.y, &up.z);
 
 //    printf("%lf %lf %lf\n", eyePos.x, eyePos.y, eyePos.z);
 //    printf("%lf %lf %lf\n", lookPos.x, lookPos.y, lookPos.z);
 //    printf("%lf %lf %lf\n", upVector.x, upVector.y, upVector.z);
 
-    //View Transformation Matrix
+    Vector lVector = look - eye;
+    lVector.normalize();
 
-    Vector l = lookPos - eyePos;
-    l.normalize();
+    Vector rVector = crossProduct(lVector , up);
+    rVector.normalize();
 
-    Vector r = crossProduct(l , upVector);
-    r.normalize();
+    Vector uVector = crossProduct(rVector, lVector);
 
-    Vector u = crossProduct(r, l);
-
-    Matrix <double > T(dim, dim, true);
-    T.setVal(0, dim-1, -eyePos.x);
-    T.setVal(1, dim-1, -eyePos.y);
-    T.setVal(2, dim-1, -eyePos.z);
+    Matrix <double > T(HOMOGENEOUS_DIM, HOMOGENEOUS_DIM, true);
+    T.setVal(0, HOMOGENEOUS_DIM-1, -eye.x);
+    T.setVal(1, HOMOGENEOUS_DIM-1, -eye.y);
+    T.setVal(2, HOMOGENEOUS_DIM-1, -eye.z);
     printf("\nT Matrix:");
     T.printMatrix();
 
-    Matrix <double > R(dim, dim, true);
-    R.setVal(0, 0,  r.x);
-    R.setVal(0, 1,  r.y);
-    R.setVal(0, 2,  r.z);
+    Matrix <double > R(HOMOGENEOUS_DIM, HOMOGENEOUS_DIM, true);
+    R.setVal(0, 0,  rVector.x);
+    R.setVal(0, 1,  rVector.y);
+    R.setVal(0, 2,  rVector.z);
 
-    R.setVal(1, 0,  u.x);
-    R.setVal(1, 1,  u.y);
-    R.setVal(1, 2,  u.z);
+    R.setVal(1, 0,  uVector.x);
+    R.setVal(1, 1,  uVector.y);
+    R.setVal(1, 2,  uVector.z);
 
-    R.setVal(2, 0,  -l.x);
-    R.setVal(2, 1,  -l.y);
-    R.setVal(2, 2,  -l.z);
+    R.setVal(2, 0,  -lVector.x);
+    R.setVal(2, 1,  -lVector.y);
+    R.setVal(2, 2,  -lVector.z);
     printf("\nR Matrix:");
     R.printMatrix();
 
@@ -378,15 +380,32 @@ int main() {
     printf("\nV Matrix:");
     V.printMatrix();
 
-
-
-
-
+//=======================================================================================================
+//Projection Transformation
+//=======================================================================================================
     //gluPerspective parameters
     double fovY, aspectRatio, near, far;
 
     fscanf(sceneFile, "%lf %lf %lf %lf", &fovY, &aspectRatio, &near, &far);
 //    printf( "%lf %lf %lf %lf\n", fovY, aspectRatio, near, far);
+
+
+    double fovX = fovY * aspectRatio;
+    double t = near * tan(fovY/2);
+    double r = near * tan(fovX/2);
+
+    Matrix <double > P(HOMOGENEOUS_DIM, HOMOGENEOUS_DIM, false);
+    P.setVal(0, 0, near/r);
+
+    P.setVal(1, 1, near/t);
+
+    P.setVal(2, 2, -(far+near)/(far-near));
+    P.setVal(2, 3, -(2*far*near)/(far-near));
+
+    P.setVal(3, 2, -1);
+
+    printf("\nP Matrix:");
+    P.printMatrix();
 
 
     char *inputString = new char[128];
@@ -398,6 +417,40 @@ int main() {
             break;
         }
         else if(strcmp(inputString, "triangle")==0){
+            for (int i = 0; i < 3; i++) {
+                Point p;
+                fscanf(sceneFile, "%lf %lf %lf", &p.x, &p.y, &p.z);
+
+                Matrix <double > pointMatrix(HOMOGENEOUS_DIM, 1, false);
+                pointMatrix.setVal(0, 0, p.x);
+                pointMatrix.setVal(1, 0, p.y);
+                pointMatrix.setVal(2, 0, p.z);
+                pointMatrix.setVal(3, 0, 1);
+
+                Matrix <double > stage1Matrix = transformationMatrix*pointMatrix;
+                Matrix <double > stage2Matrix = V*stage1Matrix;
+                Matrix <double > stage3Matrix = P*stage2Matrix;
+
+//                printf("\npointMatrix Matrix:");
+//                pointMatrix.printMatrix();
+
+                fprintf(stage1File, "%lf %lf %lf\n", stage1Matrix.getArr()[0][0], stage1Matrix.getArr()[1][0], stage1Matrix.getArr()[2][0]);
+//                printf("\nstage1Matrix Matrix:");
+//                stage1Matrix.printMatrix();
+
+                fprintf(stage2File, "%lf %lf %lf\n", stage2Matrix.getArr()[0][0], stage2Matrix.getArr()[1][0], stage2Matrix.getArr()[2][0]);
+//                printf("\nstage2Matrix Matrix:");
+//                stage2Matrix.printMatrix();
+
+                fprintf(stage3File, "%lf %lf %lf\n", stage3Matrix.getArr()[0][0], stage3Matrix.getArr()[1][0], stage3Matrix.getArr()[2][0]);
+//                printf("\nstage3Matrix Matrix:");
+//                stage3Matrix.printMatrix();
+
+            }
+            fprintf(stage1File, "\n");
+            fprintf(stage2File, "\n");
+            fprintf(stage3File, "\n");
+
 
         }
         else if(strcmp(inputString, "translate")==0){
