@@ -8,6 +8,10 @@
 #include <queue>
 #include <stack>
 
+#define pi (2*acos(0.0))
+
+using namespace std;
+
 template <typename T>
 class Matrix{
     T **arr;
@@ -15,7 +19,7 @@ class Matrix{
     int m;
 
 public:
-    Matrix(int n_var, int m_var){
+    Matrix(int n_var, int m_var, bool initializeIdentity = false){
         n = n_var;
         m = m_var;
 
@@ -26,6 +30,13 @@ public:
                 arr[i][j] = 0;
             }
         }
+
+        if(initializeIdentity){
+            for (int i = 0; i < n && i < m; i++) {
+                arr[i][i] = 1;
+            }
+        }
+
     }
 
     ~Matrix(){
@@ -240,8 +251,43 @@ public:
 
 };
 
-using namespace std;
+class Point{
+public:
+    double x, y, z;
+};
 
+class Vector{
+public:
+    double x, y, z;
+};
+
+Vector crossProduct(Vector a, Vector b){
+    Vector result;
+
+    result.x = a.y*b.z - b.y*a.z;
+    result.y = a.z*b.x - b.z*a.x;
+    result.z = a.x*b.y - b.x*a.y;
+
+    return result;
+}
+
+Vector rotateVector(Vector v, Vector refer, double rotationAngle){
+    Vector result, perp;
+
+    double radianRotationAngle = rotationAngle*pi/180.0;
+
+    //perp = refer X v
+    //result = v*cos(radianRotationAngle) + perp*sin(radianRotationAngle)
+
+    perp = crossProduct(refer, v);
+
+    result.x = v.x*cos(radianRotationAngle) + perp.x*sin(radianRotationAngle);
+    result.y = v.y*cos(radianRotationAngle) + perp.y*sin(radianRotationAngle);
+    result.z = v.z*cos(radianRotationAngle) + perp.z*sin(radianRotationAngle);
+
+
+    return result;
+}
 
 int main() {
     FILE * sceneFile = fopen("scene.txt", "r");
@@ -253,11 +299,8 @@ int main() {
         exit(0);
     }
 
-    printf("Hello World\n");
+    
 
-    Matrix<double> A(3, 3);
-
-    A.printMatrix();
 
 
     return 0;
