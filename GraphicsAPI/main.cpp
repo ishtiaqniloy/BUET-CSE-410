@@ -346,7 +346,7 @@ Vector crossProduct(Vector a, Vector b){
 }
 
 double dotProduct(Vector a, Vector b){
-    double result = a.x*b.x + a.y*b.y +a.z*b.z;
+    return a.x*b.x + a.y*b.y +a.z*b.z;
 }
 
 //Vector rotateVector(Vector v, Vector refer, double rotationAngle){
@@ -370,13 +370,6 @@ double dotProduct(Vector a, Vector b){
 Vector rotateVectorRodrigues(Vector x, Vector a, double theta){
     double thetaRad = DEGREE_TO_RADIAN*theta;
     Vector result = x*(cos(thetaRad)) + a * (dotProduct(a, x) * (1- cos(thetaRad))) + crossProduct(a, x) * (sin(thetaRad));
-
-    return result;
-}
-
-Vector rotateVectorRodrigues(Vector *x, Vector *a, double theta){
-    double thetaRad = DEGREE_TO_RADIAN*theta;
-    Vector result = (*x)*(cos(thetaRad)) + (*a) * (dotProduct((*a), (*x)) * (1- cos(thetaRad))) + crossProduct((*a), (*x)) * (sin(thetaRad));
 
     return result;
 }
@@ -581,10 +574,35 @@ int main() {
             fscanf(sceneFile, "%lf %lf %lf %lf",&angle, &a.x, &a.y, &a.z);
             a.normalize();
 
-            Vector c1 = rotateVectorRodrigues(new Vector(1, 0, 0), &a, angle);
-            Vector c2 = rotateVectorRodrigues(new Vector(1, 0, 0), &a, angle);
-            Vector c3 = rotateVectorRodrigues(new Vector(1, 0, 0), &a, angle);
-    
+            Vector i(1, 0, 0), j(0, 1, 0), k(0, 0, 1);
+
+            Vector c1 = rotateVectorRodrigues(i, a, angle);
+            Vector c2 = rotateVectorRodrigues(j, a, angle);
+            Vector c3 = rotateVectorRodrigues(k, a, angle);
+
+            Matrix <double > rotationMatrix(HOMOGENEOUS_DIM, HOMOGENEOUS_DIM, true);
+
+            rotationMatrix.setVal(0, 0, c1.x);
+            rotationMatrix.setVal(1, 0, c1.y);
+            rotationMatrix.setVal(2, 0, c1.z);
+
+            rotationMatrix.setVal(0, 1, c2.x);
+            rotationMatrix.setVal(1, 1, c2.y);
+            rotationMatrix.setVal(2, 1, c2.z);
+
+            rotationMatrix.setVal(0, 2, c3.x);
+            rotationMatrix.setVal(1, 2, c3.y);
+            rotationMatrix.setVal(2, 2, c3.z);
+
+            printf("rotationMatrix:");
+            rotationMatrix.printMatrix();
+
+            Matrix <double > temp = transformationMatrix*rotationMatrix;
+            transformationMatrix = temp;
+            printf("transformationMatrix after rotation:");
+            transformationMatrix.printMatrix();
+
+
 
         }
         else if(strcmp(inputString, "push")==0){
