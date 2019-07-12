@@ -276,12 +276,45 @@ public:
 class Vector{
 public:
     double x, y, z;
+
+    Vector(double varX = 0, double varY  = 0, double varZ = 0){
+        x = varX;
+        y = varY;
+        z = varZ;
+    }
+
     void normalize(){
         double val = sqrt(x*x + y*y + z*z);
         x = x/val;
         y = y/val;
         z = z/val;
     }
+
+    Vector operator + (Vector const &obj) {
+        Vector result;
+        result.x = x + obj.x;
+        result.y = y + obj.y;
+        result.z = z + obj.z;
+
+        return result;
+    }
+
+    Vector operator * (double const &val) {
+        Vector result;
+        result.x = x * val;
+        result.y = y * val;
+        result.z = z * val;
+
+        return result;
+    }
+
+    void operator = (Vector const &obj) {
+        x = obj.x;
+        y = obj.y;
+        z = obj.z;
+
+    }
+
 };
 
 class Point{
@@ -312,20 +345,38 @@ Vector crossProduct(Vector a, Vector b){
     return result;
 }
 
-Vector rotateVector(Vector v, Vector refer, double rotationAngle){
-    Vector result, perp;
+double dotProduct(Vector a, Vector b){
+    double result = a.x*b.x + a.y*b.y +a.z*b.z;
+}
 
-    double radianRotationAngle = rotationAngle*pi/180.0;
+//Vector rotateVector(Vector v, Vector refer, double rotationAngle){
+//    Vector result, perp;
+//
+//    double radianRotationAngle = rotationAngle*pi/180.0;
+//
+//    //perp = refer X v
+//    //result = v*cos(radianRotationAngle) + perp*sin(radianRotationAngle)
+//
+//    perp = crossProduct(refer, v);
+//
+//    result.x = v.x*cos(radianRotationAngle) + perp.x*sin(radianRotationAngle);
+//    result.y = v.y*cos(radianRotationAngle) + perp.y*sin(radianRotationAngle);
+//    result.z = v.z*cos(radianRotationAngle) + perp.z*sin(radianRotationAngle);
+//
+//
+//    return result;
+//}
 
-    //perp = refer X v
-    //result = v*cos(radianRotationAngle) + perp*sin(radianRotationAngle)
+Vector rotateVectorRodrigues(Vector x, Vector a, double theta){
+    double thetaRad = DEGREE_TO_RADIAN*theta;
+    Vector result = x*(cos(thetaRad)) + a * (dotProduct(a, x) * (1- cos(thetaRad))) + crossProduct(a, x) * (sin(thetaRad));
 
-    perp = crossProduct(refer, v);
+    return result;
+}
 
-    result.x = v.x*cos(radianRotationAngle) + perp.x*sin(radianRotationAngle);
-    result.y = v.y*cos(radianRotationAngle) + perp.y*sin(radianRotationAngle);
-    result.z = v.z*cos(radianRotationAngle) + perp.z*sin(radianRotationAngle);
-
+Vector rotateVectorRodrigues(Vector *x, Vector *a, double theta){
+    double thetaRad = DEGREE_TO_RADIAN*theta;
+    Vector result = (*x)*(cos(thetaRad)) + (*a) * (dotProduct((*a), (*x)) * (1- cos(thetaRad))) + crossProduct((*a), (*x)) * (sin(thetaRad));
 
     return result;
 }
@@ -524,6 +575,16 @@ int main() {
             transformationMatrix.printMatrix();
         }
         else if(strcmp(inputString, "rotate")==0){
+            double angle;
+            Vector a;
+
+            fscanf(sceneFile, "%lf %lf %lf %lf",&angle, &a.x, &a.y, &a.z);
+            a.normalize();
+
+            Vector c1 = rotateVectorRodrigues(new Vector(1, 0, 0), &a, angle);
+            Vector c2 = rotateVectorRodrigues(new Vector(1, 0, 0), &a, angle);
+            Vector c3 = rotateVectorRodrigues(new Vector(1, 0, 0), &a, angle);
+    
 
         }
         else if(strcmp(inputString, "push")==0){
