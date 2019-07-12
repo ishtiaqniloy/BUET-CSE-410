@@ -12,7 +12,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1519c0c2-74e6-4037-94f9-0038b54cf6e4" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../docs/Assignment 2 Specification.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/../docs/Assignment 2 Specification.pdf" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -35,17 +37,15 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="51">
-              <caret line="451" selection-start-line="451" selection-end-line="451" />
+            <state relative-caret-position="257">
+              <caret line="402" column="43" selection-start-line="402" selection-start-column="43" selection-end-line="402" selection-end-column="43" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
-                <element signature="e#156#168#0" expanded="true" />
-                <element signature="e#169#5331#1" />
-                <element signature="e#231#670#0" />
-                <element signature="e#5569#5612#1" />
-                <element signature="e#5555#5597#1" />
-                <element signature="e#5553#5737#0" />
-                <element signature="e#5739#6283#0" />
+                <element signature="e#243#5759#1" />
+                <element signature="e#5762#5934#1" />
+                <element signature="e#5937#6168#1" />
+                <element signature="e#6173#6357#0" />
+                <element signature="e#6359#6903#0" />
               </folding>
             </state>
           </provider>
@@ -55,7 +55,7 @@
         <entry file="file://$PROJECT_DIR$/cmake-build-debug/scene.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="68">
-              <caret line="4" column="8" lean-forward="true" selection-start-line="4" selection-start-column="8" selection-end-line="4" selection-end-column="8" />
+              <caret line="4" column="8" selection-start-line="4" selection-start-column="8" selection-end-line="4" selection-end-column="8" />
             </state>
           </provider>
         </entry>
@@ -69,14 +69,18 @@
         <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage2.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state>
-              <caret column="28" lean-forward="true" selection-start-column="28" selection-end-column="28" />
+              <caret column="28" selection-start-column="28" selection-end-column="28" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage3.txt">
-          <provider selected="true" editor-type-id="text-editor" />
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="34">
+              <caret line="2" column="27" selection-start-line="2" selection-start-column="27" selection-end-line="2" selection-end-column="27" />
+            </state>
+          </provider>
         </entry>
       </file>
     </leaf>
@@ -108,7 +112,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -120,6 +123,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -170,23 +174,24 @@
       <updated>1562745075764</updated>
       <workItem from="1562745085911" duration="5101000" />
       <workItem from="1562767569463" duration="308000" />
-      <workItem from="1562858006383" duration="11734000" />
+      <workItem from="1562858006383" duration="11949000" />
+      <workItem from="1562909264702" duration="117000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="17143000" />
+    <option name="totallyTimeSpent" value="17475000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15733737" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15960665" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.41734862" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.41734862" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -207,15 +212,8 @@
     <option name="version" value="1" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/scene.txt">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Matrix.h">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
+    <entry file="file://$PROJECT_DIR$/scene.txt" />
+    <entry file="file://$PROJECT_DIR$/Matrix.h" />
     <entry file="file://C:/Program Files (x86)/CodeBlocks/MinGW/include/math.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-6148">
@@ -223,39 +221,44 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/cmake-build-debug/scene.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="68">
-          <caret line="4" column="8" lean-forward="true" selection-start-line="4" selection-start-column="8" selection-end-line="4" selection-end-column="8" />
+          <caret line="4" column="8" selection-start-line="4" selection-start-column="8" selection-end-line="4" selection-end-column="8" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage1.txt">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage3.txt">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage2.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state>
-          <caret column="28" lean-forward="true" selection-start-column="28" selection-end-column="28" />
+          <caret column="28" selection-start-column="28" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cmake-build-debug/stage3.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="27" selection-start-line="2" selection-start-column="27" selection-end-line="2" selection-end-column="27" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="451" selection-start-line="451" selection-end-line="451" />
+        <state relative-caret-position="257">
+          <caret line="402" column="43" selection-start-line="402" selection-start-column="43" selection-end-line="402" selection-end-column="43" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
-            <element signature="e#156#168#0" expanded="true" />
-            <element signature="e#169#5331#1" />
-            <element signature="e#231#670#0" />
-            <element signature="e#5569#5612#1" />
-            <element signature="e#5555#5597#1" />
-            <element signature="e#5553#5737#0" />
-            <element signature="e#5739#6283#0" />
+            <element signature="e#243#5759#1" />
+            <element signature="e#5762#5934#1" />
+            <element signature="e#5937#6168#1" />
+            <element signature="e#6173#6357#0" />
+            <element signature="e#6359#6903#0" />
           </folding>
         </state>
       </provider>

@@ -9,6 +9,7 @@
 #include <stack>
 
 #define pi (2*acos(0.0))
+#define DEGREE_TO_RADIAN (pi/180.0)
 #define HOMOGENEOUS_DIM 4
 
 using namespace std;
@@ -398,8 +399,8 @@ int main() {
 
 
     double fovX = fovY * aspectRatio;
-    double t = near * tan(fovY/2.0);
-    double r = near * tan(fovX/2.0);
+    double t = near * tan(DEGREE_TO_RADIAN*fovY/2.0);
+    double r = near * tan(DEGREE_TO_RADIAN*fovX/2.0);
 
     Matrix <double > P(HOMOGENEOUS_DIM, HOMOGENEOUS_DIM, false);
     P.setVal(0, 0, near/r);
