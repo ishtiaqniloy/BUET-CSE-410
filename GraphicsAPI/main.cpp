@@ -61,6 +61,16 @@ public:
         }
     }
 
+    Matrix getCopy(){
+        Matrix<T> result(n, m);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                result.arr[i][j] = arr[i][j];
+            }
+        }
+        return result;
+    }
+
     void setValues(int new_n, int new_m, T** new_arr){
         if(n!=new_n || m!=new_m){
             printf("SIZE MISMATCH!!!");
@@ -478,16 +488,46 @@ int main() {
 
         }
         else if(strcmp(inputString, "translate")==0){
+            Vector translate;
+            fscanf(sceneFile, "%lf %lf %lf",&translate.x, &translate.y, &translate.z);
+
+            Matrix <double > translateMatrix(HOMOGENEOUS_DIM, HOMOGENEOUS_DIM, true);
+            translateMatrix.setVal(0, HOMOGENEOUS_DIM-1, translate.x);
+            translateMatrix.setVal(1, HOMOGENEOUS_DIM-1, translate.y);
+            translateMatrix.setVal(2, HOMOGENEOUS_DIM-1, translate.z);
+
+            printf("translateMatrix:");
+            translateMatrix.printMatrix();
+
+            Matrix <double > temp = transformationMatrix*translateMatrix;
+            transformationMatrix = temp;
+            printf("transformationMatrix after translate:");
+            transformationMatrix.printMatrix();
+
 
         }
         else if(strcmp(inputString, "scale")==0){
+            Vector scale;
+            fscanf(sceneFile, "%lf %lf %lf",&scale.x, &scale.y, &scale.z);
 
+            Matrix <double > scaleMatrix(HOMOGENEOUS_DIM, HOMOGENEOUS_DIM, true);
+            scaleMatrix.setVal(0, 0, scale.x);
+            scaleMatrix.setVal(1, 1, scale.y);
+            scaleMatrix.setVal(2, 2, scale.z);
+
+            printf("scaleMatrix:");
+            scaleMatrix.printMatrix();
+
+            Matrix <double > temp = transformationMatrix*scaleMatrix;
+            transformationMatrix = temp;
+            printf("transformationMatrix after scale:");
+            transformationMatrix.printMatrix();
         }
         else if(strcmp(inputString, "rotate")==0){
 
         }
         else if(strcmp(inputString, "push")==0){
-            saveStack.push(transformationMatrix);
+            saveStack.push(transformationMatrix.getCopy());
         }
         else if(strcmp(inputString, "pop")==0){
             transformationMatrix = saveStack.top();
