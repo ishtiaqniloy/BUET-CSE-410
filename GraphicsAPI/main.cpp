@@ -209,8 +209,6 @@ public:
         return result;
     }
 
-
-
     Matrix elementWiseProduct (Matrix const &obj) {
         if(n != obj.n || m != obj.m){
             printf("SIZE MISMATCH!!!");
@@ -259,16 +257,8 @@ public:
         return n;
     }
 
-    void setN(int n) {
-        Matrix::n = n;
-    }
-
     int getM() const {
         return m;
-    }
-
-    void setM(int m) {
-        Matrix::m = m;
     }
 
 };
@@ -616,8 +606,8 @@ int main() {
             transformationMatrix.printMatrix();
         }
         else{
-//            printf("ERROR IN INPUT");
-//            break;
+            printf("ERROR IN INPUT");
+            break;
         }
 
 
