@@ -278,12 +278,16 @@ Vector3D rotateVector(Vector3D v, Vector3D refer, double rotationAngle){
 
     result = v*cos(radianRotationAngle) + perp*sin(radianRotationAngle);
 
+    result.normalize();
+
     return result;
 }
 
 Vector3D rotateVectorRodrigues(Vector3D x, Vector3D a, double rotationAngle){
     double thetaRad = DEGREE_TO_RADIAN*rotationAngle;
     Vector3D result = x*(cos(thetaRad)) + a * (dotProduct(a, x) * (1- cos(thetaRad))) + crossProduct(a, x) * (sin(thetaRad));
+
+    result.normalize();
 
     return result;
 }
@@ -355,12 +359,18 @@ double getDistance(Point3D a, Point3D b){
     return (a-b).getVal();
 }
 
-class colorRGB{
+class ColorRGB{
 public:
     double r, g, b;
 
-    colorRGB operator * (double const &val) {
-        colorRGB result;
+    ColorRGB(double varR = 1, double varG  = 1, double varB = 1){
+        r = varR;
+        g = varG;
+        b = varB;
+    }
+
+    ColorRGB operator * (double const &val) {
+        ColorRGB result;
         result.r = r * val;
         result.g = g * val;
         result.b = b * val;
@@ -368,8 +378,8 @@ public:
         return result;
     }
 
-    colorRGB operator + (double const &val) {
-        colorRGB result;
+    ColorRGB operator + (double const &val) {
+        ColorRGB result;
         result.r = r + val;
         result.g = g + val;
         result.b = b + val;
@@ -378,8 +388,8 @@ public:
     }
 
 
-    colorRGB operator + (colorRGB const &obj) {
-        colorRGB result;
+    ColorRGB operator + (ColorRGB const &obj) {
+        ColorRGB result;
         result.r = obj.r;
         result.g = obj.g;
         result.b = obj.b;
@@ -387,15 +397,15 @@ public:
         return result;
     }
 
-     void operator = (colorRGB const &obj) {
+     void operator = (ColorRGB const &obj) {
         r = obj.r;
         g = obj.g;
         b = obj.b;
 
     }
 
-    colorRGB getCopy(){
-        colorRGB result;
+    ColorRGB getCopy(){
+        ColorRGB result;
         result.r = r;
         result.g = g;
         result.b = b;
@@ -415,19 +425,19 @@ vector <Point3D *> lights;
 
 class SceneObject{
 public:
-    colorRGB objectColor;
+    ColorRGB objectColor;
     double ambCoeff, diffCoeff, specCoeff, refCoeff, specExp;
 
 
-    void setColor(colorRGB color){
+    void setColor(ColorRGB color){
         objectColor = color.getCopy();
     }
 
-    colorRGB getObjectColor(){
+    ColorRGB getObjectColor(){
         return objectColor.getCopy();
     }
 
-    setCoefficients(double a, double d, double s, double r, double se){
+    void setCoefficients(double a, double d, double s, double r, double se){
         ambCoeff = a;
         diffCoeff = d;
         specCoeff = s;
@@ -435,7 +445,7 @@ public:
         specExp = se;
     }
 
-    virtual colorRGB getColorAt(){
+    virtual ColorRGB getColorAt(){
         printf("BASE CLASS!!!!!");
         return objectColor;
     }
@@ -445,12 +455,16 @@ public:
         printf("BASE CLASS!!!!!");
     }
 
+    virtual void printProperties(){
+        //do nothing
+        printf("BASE CLASS!!!!!");
+    }
 
 };
 
-class checkerBoard : SceneObject{
+class CheckerBoard : public SceneObject{
 public:
-    colorRGB getColorAt(){
+    ColorRGB getColorAt(){
         return objectColor;
     }
 
@@ -472,17 +486,18 @@ public:
 
 };
 
-class sphere : SceneObject{
+class Sphere : public SceneObject{
 public:
     Point3D center;
     double radius;
 
 
-    colorRGB getColorAt(){
+    ColorRGB getColorAt(){
         return objectColor;
     }
 
     void draw(){
+        //printf("In sphere draw function...\n");
         glPushMatrix();
         glTranslatef(center.x, center.y, center.z);
 
@@ -504,7 +519,6 @@ public:
         }
         //draw quads using generated points
         for(i=0;i<stacks;i++){
-            glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
             for(j=0;j<slices;j++)
             {
                 glBegin(GL_QUADS);{
@@ -525,9 +539,14 @@ public:
         glPopMatrix();
     }
 
+    void printProperties(){
+        //do nothing
+        printf("Sphere: %f %f %f %f %f %f %f %f %f %f %f %f\n", center.x, center.y, center.z, radius, objectColor.r, objectColor.g, objectColor.b, ambCoeff, diffCoeff, specCoeff, refCoeff, specExp);
+    }
+
 };
 
-class square : SceneObject{
+class Square : public SceneObject{
 public:
     Point3D a;
     double length;
@@ -535,7 +554,7 @@ public:
     Vector3D normal;
 
 
-    colorRGB getColorAt(){
+    ColorRGB getColorAt(){
         return objectColor;
     }
 
@@ -552,12 +571,12 @@ public:
 };
 
 
-class triangle : SceneObject{
+class Triangle : public SceneObject{
 public:
     Point3D a, b, c;
 
 
-    colorRGB getColorAt(){
+    ColorRGB getColorAt(){
         return objectColor;
     }
 
@@ -721,8 +740,18 @@ void display(){
 	****************************/
 	//add objects
 
-	for(int i=0; i< objects.size(); i++){
+	for(int i=0; i<objects.size(); i++){
         objects[i]->draw();
+	}
+
+	ColorRGB white;
+	Sphere temp;
+    SceneObject *obj = &temp;
+	for(int i=0; i<lights.size(); i++){
+        temp.setColor(white);
+        temp.radius = 2;
+        temp.center = *(lights[i]);
+        obj->draw();
 	}
 
 	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
@@ -822,18 +851,93 @@ void takeSceneInput(){
         if(strcmp(type, "sphere")==0){
             printf("%s %f %f %f %f %f %f %f %f %f %f %f %f\n", type, x, y, z, r, cr, cg, cb, a, d, s, re, se);
 
+            Point3D center(x, y, z);
+            ColorRGB color(cr, cg, cb);
+            Sphere *tempSpehre = new Sphere();
+            SceneObject *tempObj = tempSpehre;
+
+            tempSpehre->center = center;
+            tempSpehre->radius = r;
+            tempObj->setColor(color);
+            tempObj->setCoefficients(a, d, s, re, se);
+
+            objects.push_back(tempObj);
 
 
         }
         else if(strcmp(type, "pyramid")==0){
             printf("%s %f %f %f %f %f %f %f %f %f %f %f %f %f\n", type, x, y, z, r, h, cr, cg, cb, a, d, s, re, se);
 
+            Point3D pointA(x, y, z);
+            Point3D pointB(x+r, y, z);
+            Point3D pointC(x+r, y+r, z);
+            Point3D pointD(x, y+r, z);
+            Point3D pointT(x+(0.5*r), y+(0.5*r), z+h);
+            ColorRGB color(cr, cg, cb);
+
+            //base square
+            Square *tempSquare = new Square();
+            SceneObject *tempObj = tempSquare;
+            tempSquare->a = pointA;
+            tempSquare->length = r;
+            tempObj->setColor(color);
+            tempObj->setCoefficients(a, d, s, re, se);
+            objects.push_back(tempObj);
+
+
+            //triangles
+            Triangle *tempTriangle;
+
+            //triangle1
+            tempTriangle = new Triangle();
+            tempObj = tempTriangle;
+            tempTriangle->a = pointA;
+            tempTriangle->b = pointB;
+            tempTriangle->c = pointT;
+            tempObj->setColor(color);
+            tempObj->setCoefficients(a, d, s, re, se);
+            objects.push_back(tempObj);
+
+            //triangle2
+            tempTriangle = new Triangle();
+            tempObj = tempTriangle;
+            tempTriangle->a = pointB;
+            tempTriangle->b = pointC;
+            tempTriangle->c = pointT;
+            tempObj->setColor(color);
+            tempObj->setCoefficients(a, d, s, re, se);
+            objects.push_back(tempObj);
+
+            //triangle3
+            tempTriangle = new Triangle();
+            tempObj = tempTriangle;
+            tempTriangle->a = pointC;
+            tempTriangle->b = pointD;
+            tempTriangle->c = pointT;
+            tempObj->setColor(color);
+            tempObj->setCoefficients(a, d, s, re, se);
+            objects.push_back(tempObj);
+
+            //triangle4
+            tempTriangle = new Triangle();
+            tempObj = tempTriangle;
+            tempTriangle->a = pointD;
+            tempTriangle->b = pointA;
+            tempTriangle->c = pointT;
+            tempObj->setColor(color);
+            tempObj->setCoefficients(a, d, s, re, se);
+            objects.push_back(tempObj);
+
         }
 
 
     }
 
-    SceneObject *checkerBoard = new SceneObject();
+    CheckerBoard *board = new CheckerBoard();
+    SceneObject *tempObj = board;
+    ColorRGB white;
+    tempObj->setColor(white);
+    objects.push_back(tempObj);
 
 
     //lights
@@ -846,14 +950,10 @@ void takeSceneInput(){
         Point3D *lightPos = new Point3D(x, y, z);
         lights.push_back(lightPos);
 
-        printf("light at %f %f %f\n", x, y, z);
+        printf("light at %f %f %f\n", lights[i]->x, lights[i]->y, lights[i]->z);
     }
 
     printf("LOR=%d, num_pixels=%d, num_objects=%d, num_lights=%d\n", LOR, num_pixels, num_objects, num_lights);
-
-
-
-
 
 
 }
