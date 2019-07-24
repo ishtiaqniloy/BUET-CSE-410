@@ -55,6 +55,7 @@
 		<ExtraCommands>
 			<Add after="xcopy /y OpenGL\DLL\glut32.dll $TARGET_OUTPUT_DIR" />
 		</ExtraCommands>
+		<Unit filename="bitmap_image.hpp" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />

@@ -1,12 +1,15 @@
 #include<cstdio>
 #include<cstdlib>
 #include<cmath>
-#include <iostream>
+#include <ctime>
 
+#include <iostream>
 #include <vector>
 
 #include <windows.h>
 #include <glut.h>
+
+#include "bitmap_image.hpp"
 
 #define INF 999999
 #define pi (2*acos(0.0))
@@ -46,7 +49,7 @@ class Matrix{
     int m;
 
 public:
-    Matrix(int n_var, int m_var, bool initializeIdentity = true){
+    Matrix(int n_var, int m_var, bool initializeIdentity = false){
         n = n_var;
         m = m_var;
 
@@ -110,9 +113,9 @@ public:
         if(i >= n || j >= m){
             return;
         }
-        else if(val == -0){
-            val = 0;
-        }
+//        else if(val == -0){
+//            val = 0;
+//        }
         arr[i][j] = val;
     }
 
@@ -342,6 +345,13 @@ public:
 
     }
 
+    void operator = (double const &val) {
+        x = val;
+        y = val;
+        z = val;
+    }
+
+
     Point3D getCopy(){
         Point3D result;
         result.x = x;
@@ -404,6 +414,12 @@ public:
 
     }
 
+    void operator = (double const &val) {
+        r = val;
+        g = val;
+        b = val;
+    }
+
     ColorRGB getCopy(){
         ColorRGB result;
         result.r = r;
@@ -464,6 +480,14 @@ public:
 
 class CheckerBoard : public SceneObject{
 public:
+    Vector3D normal;
+
+    CheckerBoard(){
+        Vector3D n(0, 0, 1);
+        normal = n;
+    }
+
+
     ColorRGB getColorAt(){
         return objectColor;
     }
@@ -553,6 +577,14 @@ public:
 
     Vector3D normal;
 
+    Square(){
+        Vector3D n(0, 0, 1);
+        normal = n;
+    }
+
+    void setNormal(Vector3D n){
+        normal = n;
+    }
 
     ColorRGB getColorAt(){
         return objectColor;
@@ -575,6 +607,16 @@ class Triangle : public SceneObject{
 public:
     Point3D a, b, c;
 
+    Vector3D normal;
+
+    setNormal(){
+        Vector3D v1 = (b-a);
+        Vector3D v2 = (c-a);
+
+        normal = crossProduct(v1, v2);
+        normal.normalize();
+
+    }
 
     ColorRGB getColorAt(){
         return objectColor;
@@ -596,8 +638,46 @@ public:
 vector <SceneObject *> objects;
 
 
+void createImage(Matrix <ColorRGB> colorArr){
+    int n = colorArr.getN();
+    int m = colorArr.getM();
+    bitmap_image image(n, m);
+    for (int x = 0; x < n; x++) {
+        for (int y = 0; y < m; y++) {
+            ColorRGB temp = colorArr.getVal(x, y);
+            image.set_pixel(x, y, 255*temp.r, 255*temp.g, 255*temp.b);
+        }
+    }
+    image.save_image("out.bmp");
+
+}
+
+
 void captureScene(){
     //capture here
+    clock_t startTime, endTime;
+    double cpu_time_used;
+    startTime = clock();
+    printf("\n\nCapture Scene initiated\n");
+
+    Matrix <Point3D> pixelPositions(num_pixels, num_pixels, false);
+    Matrix <ColorRGB> pixelColors(num_pixels, num_pixels, false);
+
+    ColorRGB white(1, 1, 1);
+    for(int i=0; i<num_pixels; i++){
+        for(int j=0; j<num_pixels; j++){
+            pixelColors.setVal(i, j, white);
+        }
+    }
+
+
+
+    createImage(pixelColors);
+
+    endTime = clock();
+    cpu_time_used = (1000*(double) (endTime - startTime)) / CLOCKS_PER_SEC;
+    printf("Time taken in capturing the scene: %f ms\n", cpu_time_used);
+
 }
 
 
@@ -740,10 +820,13 @@ void display(){
 	****************************/
 	//add objects
 
+    //draw objects
 	for(int i=0; i<objects.size(); i++){
         objects[i]->draw();
 	}
 
+
+    //draw lights
 	ColorRGB white;
 	Sphere temp;
     SceneObject *obj = &temp;
@@ -880,6 +963,7 @@ void takeSceneInput(){
             SceneObject *tempObj = tempSquare;
             tempSquare->a = pointA;
             tempSquare->length = r;
+
             tempObj->setColor(color);
             tempObj->setCoefficients(a, d, s, re, se);
             objects.push_back(tempObj);
@@ -894,6 +978,8 @@ void takeSceneInput(){
             tempTriangle->a = pointA;
             tempTriangle->b = pointB;
             tempTriangle->c = pointT;
+            tempTriangle->setNormal();
+
             tempObj->setColor(color);
             tempObj->setCoefficients(a, d, s, re, se);
             objects.push_back(tempObj);
@@ -904,6 +990,8 @@ void takeSceneInput(){
             tempTriangle->a = pointB;
             tempTriangle->b = pointC;
             tempTriangle->c = pointT;
+            tempTriangle->setNormal();
+
             tempObj->setColor(color);
             tempObj->setCoefficients(a, d, s, re, se);
             objects.push_back(tempObj);
@@ -914,6 +1002,8 @@ void takeSceneInput(){
             tempTriangle->a = pointC;
             tempTriangle->b = pointD;
             tempTriangle->c = pointT;
+            tempTriangle->setNormal();
+
             tempObj->setColor(color);
             tempObj->setCoefficients(a, d, s, re, se);
             objects.push_back(tempObj);
@@ -924,6 +1014,8 @@ void takeSceneInput(){
             tempTriangle->a = pointD;
             tempTriangle->b = pointA;
             tempTriangle->c = pointT;
+            tempTriangle->setNormal();
+
             tempObj->setColor(color);
             tempObj->setCoefficients(a, d, s, re, se);
             objects.push_back(tempObj);
