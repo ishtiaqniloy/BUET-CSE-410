@@ -8,6 +8,7 @@
 #include <windows.h>
 #include <glut.h>
 
+#define INF 999999
 #define pi (2*acos(0.0))
 #define DEGREE_TO_RADIAN (pi/180.0)
 
@@ -30,6 +31,12 @@
 #define TRIANGLE 3
 
 using namespace std;
+
+int LOR;    //level of recursion
+int num_pixels; //number of pixels along one axis
+int num_objects; //number of objects in the scene
+int num_lights; //number of light sources
+
 
 
 template <typename T>
@@ -257,6 +264,11 @@ double dotProduct(Vector3D a, Vector3D b){
     return a.getX()*b.getX() + a.getY()*b.getY() +a.getZ()*b.getZ();
 }
 
+double getRadAngleVectors(Vector3D a, Vector3D b){
+    return (1.0*dotProduct(a,b)/(a.getVal(), b.getVal()));
+
+}
+
 Vector3D rotateVector(Vector3D v, Vector3D refer, double rotationAngle){
     Vector3D result, perp;
 
@@ -339,6 +351,10 @@ public:
 };
 
 
+double getDistance(Point3D a, Point3D b){
+    return (a-b).getVal();
+}
+
 class colorRGB{
 public:
     double r, g, b;
@@ -391,71 +407,174 @@ public:
 };
 
 
+
+Point3D camera_pos;
+Vector3D camera_u, camera_r, camera_l;
+vector <Point3D *> lights;
+
+
 class SceneObject{
 public:
-    int type;
     colorRGB objectColor;
-
-    Point3D a, b, c, d;
-    double r;
-    Vector3D normal;
+    double ambCoeff, diffCoeff, specCoeff, refCoeff, specExp;
 
 
-
+    void setColor(colorRGB color){
+        objectColor = color.getCopy();
+    }
 
     colorRGB getObjectColor(){
         return objectColor.getCopy();
     }
 
+    setCoefficients(double a, double d, double s, double r, double se){
+        ambCoeff = a;
+        diffCoeff = d;
+        specCoeff = s;
+        refCoeff = r;
+        specExp = se;
+    }
 
+    virtual colorRGB getColorAt(){
+        printf("BASE CLASS!!!!!");
+        return objectColor;
+    }
+
+    virtual void draw(){
+        //do nothing
+        printf("BASE CLASS!!!!!");
+    }
 
 
 };
 
+class checkerBoard : SceneObject{
+public:
+    colorRGB getColorAt(){
+        return objectColor;
+    }
 
-Point3D camera_pos;
-Vector3D camera_u, camera_r, camera_l;
-vector <SceneObject *> objects;
-vector <Point3D *> lights;
-
-int LOR;    //level of recursion
-int num_pixels; //number of pixels along one axis
-int num_objects; //number of objects in the scene
-int num_lights; //number of light sources
-
-
-void drawSquare(double a){
-	glBegin(GL_QUADS);{
-		glVertex3f( a,  a, 0);
-		glVertex3f( a, -a, 0);
-		glVertex3f(-a, -a, 0);
-		glVertex3f(-a,  a, 0);
-	}glEnd();
-}
-
-void drawBoard(){
-	for(int i = -BOARD_LIMIT; i < BOARD_LIMIT; i+=BOARD_SIZE ){
-        for(int j = -BOARD_LIMIT; j < BOARD_LIMIT; j += BOARD_SIZE ){
-            if(abs((i+j)/BOARD_SIZE)%2==0){
-                glColor3f(0, 0, 0);
+    void draw(){
+        glColor3f(objectColor.r, objectColor.g, objectColor.b);
+        for(int i = -BOARD_LIMIT; i < BOARD_LIMIT; i+=BOARD_SIZE ){
+            for(int j = -BOARD_LIMIT; j < BOARD_LIMIT; j += BOARD_SIZE ){
+                if(abs((i+j)/BOARD_SIZE)%2){
+                    glBegin(GL_QUADS);{
+                        glVertex3f( i,  j, 0);
+                        glVertex3f( i, j+BOARD_SIZE, 0);
+                        glVertex3f(i+BOARD_SIZE, j+BOARD_SIZE, 0);
+                        glVertex3f(i+BOARD_SIZE,  j, 0);
+                    }glEnd();
+                }
             }
-            else{
-                glColor3f(1, 1, 1);
+        }
+    }
+
+};
+
+class sphere : SceneObject{
+public:
+    Point3D center;
+    double radius;
+
+
+    colorRGB getColorAt(){
+        return objectColor;
+    }
+
+    void draw(){
+        glPushMatrix();
+        glTranslatef(center.x, center.y, center.z);
+
+        glColor3f(objectColor.r, objectColor.g, objectColor.b);
+        int slices = 50, stacks = 50;
+        Point3D points[100][100];
+        int i,j;
+        double h,r;
+        //generate points
+        for(i=0;i<=stacks;i++){
+            h=radius*sin(((double)i/(double)stacks)*(pi/2));
+            r=radius*cos(((double)i/(double)stacks)*(pi/2));
+            for(j=0;j<=slices;j++)
+            {
+                points[i][j].x=r*cos(((double)j/(double)slices)*2*pi);
+                points[i][j].y=r*sin(((double)j/(double)slices)*2*pi);
+                points[i][j].z=h;
             }
-
-            glBegin(GL_QUADS);{
-                glVertex3f( i,  j, 0);
-                glVertex3f( i, j+BOARD_SIZE, 0);
-                glVertex3f(i+BOARD_SIZE, j+BOARD_SIZE, 0);
-                glVertex3f(i+BOARD_SIZE,  j, 0);
-            }glEnd();
-
-
+        }
+        //draw quads using generated points
+        for(i=0;i<stacks;i++){
+            glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
+            for(j=0;j<slices;j++)
+            {
+                glBegin(GL_QUADS);{
+                    //upper hemisphere
+                    glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
+                    glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
+                    glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
+                    glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
+                    //lower hemisphere
+                    glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
+                    glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
+                    glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
+                    glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
+                }glEnd();
+            }
         }
 
-	}
-}
+        glPopMatrix();
+    }
 
+};
+
+class square : SceneObject{
+public:
+    Point3D a;
+    double length;
+
+    Vector3D normal;
+
+
+    colorRGB getColorAt(){
+        return objectColor;
+    }
+
+    void draw(){
+        glColor3f(objectColor.r, objectColor.g, objectColor.b);
+        glBegin(GL_QUADS);{
+            glVertex3f( a.x,  a.y, a.z);
+            glVertex3f( a.x+length,  a.y, a.z);
+            glVertex3f( a.x+length,  a.y+length, a.z);
+            glVertex3f( a.x,  a.y+length, a.z);
+        }glEnd();
+    }
+
+};
+
+
+class triangle : SceneObject{
+public:
+    Point3D a, b, c;
+
+
+    colorRGB getColorAt(){
+        return objectColor;
+    }
+
+
+    void draw(){
+        glColor3f(objectColor.r, objectColor.g, objectColor.b);
+        glBegin(GL_TRIANGLES);{
+            glVertex3f( a.x,  a.y, a.z);
+            glVertex3f( b.x,  b.y, b.z);
+            glVertex3f( c.x,  c.y, c.z);
+        }glEnd();
+    }
+
+};
+
+
+vector <SceneObject *> objects;
 
 
 void captureScene(){
@@ -602,7 +721,9 @@ void display(){
 	****************************/
 	//add objects
 
-    drawBoard();
+	for(int i=0; i< objects.size(); i++){
+        objects[i]->draw();
+	}
 
 	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
 	glutSwapBuffers();
@@ -679,10 +800,35 @@ void takeSceneInput(){
 
     fscanf(sceneFile, "%d", &num_objects);
 
+    char *type = new char[80];
+    double x, y, z, r, h, cr, cg, cb, a, d, s, re, se;
+
     for(int i=0; i<num_objects; i++){
-        char *type = new char[80];
+        fgets(dummy, 10, sceneFile);
+        fscanf(sceneFile, "%s", type);
+        printf("%s\n", type);
+        fscanf(sceneFile, "%lf %lf %lf", &x, &y, &z);
+        if(strcmp(type, "sphere")==0){
+            fscanf(sceneFile, "%lf", &r);
+        }
+        else if(strcmp(type, "pyramid")==0){
+            fscanf(sceneFile, "%lf %lf", &r, &h);
+        }
+
+        fscanf(sceneFile, "%lf %lf %lf", &cr, &cg, &cb);
+        fscanf(sceneFile, "%lf %lf %lf %lf", &a, &d, &s, &re);
+        fscanf(sceneFile, "%lf", &se);
+
+        if(strcmp(type, "sphere")==0){
+            printf("%s %f %f %f %f %f %f %f %f %f %f %f %f\n", type, x, y, z, r, cr, cg, cb, a, d, s, re, se);
 
 
+
+        }
+        else if(strcmp(type, "pyramid")==0){
+            printf("%s %f %f %f %f %f %f %f %f %f %f %f %f %f\n", type, x, y, z, r, h, cr, cg, cb, a, d, s, re, se);
+
+        }
 
 
     }
@@ -690,6 +836,18 @@ void takeSceneInput(){
     SceneObject *checkerBoard = new SceneObject();
 
 
+    //lights
+    fgets(dummy, 10, sceneFile);
+    fgets(dummy, 10, sceneFile);
+    fscanf(sceneFile, "%d", &num_lights);
+
+    for(int i; i<num_lights; i++){
+        fscanf(sceneFile, "%lf %lf %lf", &x, &y, &z);
+        Point3D *lightPos = new Point3D(x, y, z);
+        lights.push_back(lightPos);
+
+        printf("light at %f %f %f\n", x, y, z);
+    }
 
     printf("LOR=%d, num_pixels=%d, num_objects=%d, num_lights=%d\n", LOR, num_pixels, num_objects, num_lights);
 
@@ -726,294 +884,4 @@ int main(int argc, char **argv){
 
 	return 0;
 }
-
-
-
-
-/*
-void drawSpherePart(double radius,int slices,int stacks){
-	Point points[100][100];
-	int i,j;
-	double h,r;
-	//generate points
-	for(i=0;i<=stacks;i++){
-		h=radius*sin(((double)i/(double)stacks)*(pi*0.5));
-		r=radius*cos(((double)i/(double)stacks)*(pi*0.5));
-		for(j=0;j<=slices;j++){
-			points[i][j].x=r*cos(((double)j/(double)slices)*pi*0.5);
-			points[i][j].y=r*sin(((double)j/(double)slices)*pi*0.5);
-			points[i][j].z=h;
-		}
-	}
-	//draw quads using generated points
-	for(i=0;i<stacks;i++){
-		for(j=0;j<slices;j++){
-			glBegin(GL_QUADS);{
-			    //upper part
-				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
-			}glEnd();
-		}
-	}
-}
-*/
-
-/*
-void drawCylinderPart(double radius, double height, int slices,int stacks){
-	Point points[100][100];
-	int i,j;
-	double h;
-	//generate points
-	for(i=0;i<=stacks;i++){
-		h = height*(double)i/(double)stacks;
-		for(j=0;j<=slices;j++){
-			points[i][j].x=radius*cos(((double)j/(double)slices)*pi*0.5);
-			points[i][j].y=radius*sin(((double)j/(double)slices)*pi*0.5);
-			points[i][j].z=h;
-		}
-	}
-	//draw quads using generated points
-	for(i=0;i<stacks;i++){
-		for(j=0;j<slices;j++){
-			glBegin(GL_QUADS);{
-			    //upper half
-				glVertex3f(points[i][j].x,points[i][j].y,points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
-                //lower half
-                glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
-			}glEnd();
-		}
-	}
-}
-*/
-
-/*
-void drawCube(){
-    glColor3f(1, 1, 1);   //white color
-
-    //up
-    glPushMatrix();
-    glTranslatef(0, 0, MAX_LEN);
-    drawSquare(currentLen);
-    glPopMatrix();
-
-    //down
-    glPushMatrix();
-    glTranslatef(0, 0, -MAX_LEN);
-    drawSquare(currentLen);
-    glPopMatrix();
-
-    //left
-    glPushMatrix();
-    glTranslatef(MAX_LEN, 0, 0);
-    glRotatef(90, 0, 1, 0);
-    drawSquare(currentLen);
-    glPopMatrix();
-
-    //right
-    glPushMatrix();
-    glTranslatef(-MAX_LEN, 0, 0);
-    glRotatef(90, 0, 1, 0);
-    drawSquare(currentLen);
-    glPopMatrix();
-
-    //back
-    glPushMatrix();
-    glTranslatef(0, -MAX_LEN, 0);
-    glRotatef(90, 1, 0, 0);
-    drawSquare(currentLen);
-    glPopMatrix();
-
-    //front
-    glPushMatrix();
-    glTranslatef(0, MAX_LEN, 0);
-    glRotatef(90, 1, 0, 0);
-    drawSquare(currentLen);
-    glPopMatrix();
-
-}
-*/
-
-/*
-void drawSphere(){
-    glColor3f(1, 0, 0);   //red color
-
-    //upper half sphere
-    glPushMatrix();
-    glTranslatef(currentLen, currentLen, currentLen);
-    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(90, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, currentLen);
-    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(180, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, currentLen);
-    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(270, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, currentLen);
-    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-
-    //lower half sphere
-    glPushMatrix();
-    glTranslatef(currentLen, currentLen, -currentLen);
-    glRotatef(180, 1, 1, 0);
-    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(90, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, -currentLen);
-    glRotatef(180, 1, 1, 0);
-    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(180, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, -currentLen);
-    glRotatef(180, 1, 1, 0);
-    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(270, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, -currentLen);
-    glRotatef(180, 1, 1, 0);
-    drawSpherePart(MAX_LEN - currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-
-}*/
-
-/*
-void drawCylinder(){
-    glColor3f(0, 1, 0);   //green color
-
-    //sides
-    glPushMatrix();
-    glTranslatef(currentLen, currentLen, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(90, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(180, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(270, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-
-
-    //upper parts
-    glPushMatrix();
-    glRotatef(45, 1, 0, 0);
-    glRotatef(45, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    glRotatef(90, 1, 1, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(90, 0, 0, 1);
-    glRotatef(45, 1, 0, 0);
-    glRotatef(45, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    glRotatef(90, 1, 1, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(180, 0, 0, 1);
-    glRotatef(45, 1, 0, 0);
-    glRotatef(45, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    glRotatef(90, 1, 1, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(270, 0, 0, 1);
-    glRotatef(45, 1, 0, 0);
-    glRotatef(45, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    glRotatef(90, 1, 1, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-
-
-    //lower parts
-    glPushMatrix();
-    glRotatef(-45, 1, 0, 0);
-    glRotatef(45, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    glRotatef(90, 1, 1, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(90, 0, 0, 1);
-    glRotatef(-45, 1, 0, 0);
-    glRotatef(45, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    glRotatef(90, 1, 1, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(180, 0, 0, 1);
-    glRotatef(-45, 1, 0, 0);
-    glRotatef(45, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    glRotatef(90, 1, 1, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-    glPushMatrix();
-    glRotatef(270, 0, 0, 1);
-    glRotatef(-45, 1, 0, 0);
-    glRotatef(45, 0, 0, 1);
-    glTranslatef(currentLen, currentLen, 0);
-    glRotatef(90, 1, 1, 0);
-    drawCylinderPart(MAX_LEN-currentLen, currentLen, SLICES, STACKS);
-    glPopMatrix();
-
-}
-*/
-
-
-
-
-
-
-
-
-
 
