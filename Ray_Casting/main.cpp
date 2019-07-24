@@ -174,6 +174,16 @@ public:
         return result;
     }
 
+    Vector3D getOppositeVector(){
+        Vector3D result;
+        result.x = -x;
+        result.y = -y;
+        result.z = -z;
+
+        return result;
+    }
+
+
     double getVal(){
         return sqrt(x*x + y*y + z*z);
     }
@@ -331,6 +341,15 @@ public:
 
     Vector3D operator - (Point3D const &obj) {
         Vector3D result;
+        result.setX(x - obj.getX());
+        result.setY(y - obj.getY());
+        result.setZ(z - obj.getZ());
+
+        return result;
+    }
+
+    Point3D operator + (Vector3D const &obj) {
+        Point3D result;
         result.setX(x - obj.getX());
         result.setY(y - obj.getY());
         result.setZ(z - obj.getZ());
@@ -649,6 +668,7 @@ void createImage(Matrix <ColorRGB> colorArr){
         }
     }
     image.save_image("out.bmp");
+    printf("Created bmp image\n");
 
 }
 
@@ -663,17 +683,47 @@ void captureScene(){
     Matrix <Point3D> pixelPositions(num_pixels, num_pixels, false);
     Matrix <ColorRGB> pixelColors(num_pixels, num_pixels, false);
 
-    ColorRGB white(1, 1, 1);
-    for(int i=0; i<num_pixels; i++){
-        for(int j=0; j<num_pixels; j++){
-            pixelColors.setVal(i, j, white);
+
+    //working with pixelPositions array
+    Vector3D look = camera_l.getCopy();
+    look.normalize();
+
+    Vector3D up = camera_u.getCopy();
+    up.normalize();
+    Vector3D down = up.getOppositeVector();
+    down.normalize();
+
+    Vector3D right = camera_r.getCopy();
+    right.normalize();
+    Vector3D left = right.getOppositeVector();
+    left.normalize();
+
+
+    Point3D midPoint = camera_pos+(camera_l*NEAR_DIST);
+    double half = NEAR_DIST*tan(DEGREE_TO_RADIAN*fov_Y);
+    Point3D highPoint = midPoint + (left*half) + (up*half);
+
+    double pixelLen = 2.0*half/num_pixels;
+
+    for (int i = 0; i < num_pixels; i++) {
+        for (int j = 0; j < num_pixels; j++) {
+            Point3D temp = highPoint + (down*(i+0.5) + right*(j+0.5))*pixelLen;
+            pixelPositions.setVal(i, j, temp);
         }
     }
+
+    /*for (int i = 0; i < num_pixels; i++) {
+        for (int j = 0; j < num_pixels; j++) {
+            printf("<%f,%f,%f> ", pixelPositions.getVal(i,j).x, pixelPositions.getVal(i,j).y, pixelPositions.getVal(i,j).z);
+        }
+        printf("\n");
+    }*/
+
+
 
 
 
     createImage(pixelColors);
-
     endTime = clock();
     cpu_time_used = (1000*(double) (endTime - startTime)) / CLOCKS_PER_SEC;
     printf("Time taken in capturing the scene: %f ms\n", cpu_time_used);
