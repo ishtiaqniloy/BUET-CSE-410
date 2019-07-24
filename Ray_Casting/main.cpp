@@ -14,6 +14,12 @@
 #define CAMERA_ANGLE_CHANGE 0.8
 #define CAMERA_POS_CHANGE 3
 
+//gluPerspective parameters
+#define fov_Y 80
+#define ASPECT_RATIO 1
+#define NEAR_DIST 1
+#define FAR_DIST 1000
+
 #define BOARD_LIMIT 1000
 #define BOARD_SIZE 20
 
@@ -410,6 +416,12 @@ public:
 Point3D camera_pos;
 Vector3D camera_u, camera_r, camera_l;
 vector <SceneObject *> objects;
+vector <Point3D *> lights;
+
+int LOR;    //level of recursion
+int num_pixels; //number of pixels along one axis
+int num_objects; //number of objects in the scene
+int num_lights; //number of light sources
 
 
 void drawSquare(double a){
@@ -622,7 +634,13 @@ void init(){
 	camera_l.y = -1.0/sqrt(2);
 	camera_l.z = 0;
 
+	LOR = 0;
+	num_pixels = 0;
+	num_objects = 0;
+	num_lights = 0;
+
 	objects.clear();
+	lights.clear();
 
 
 	//clear the screen
@@ -638,11 +656,48 @@ void init(){
 	glLoadIdentity();
 
 	//give PERSPECTIVE parameters
-	gluPerspective(80,	1,	1,	1000.0);
+	gluPerspective(fov_Y,	ASPECT_RATIO,	NEAR_DIST,	FAR_DIST);
 	//field of view in the Y (vertically)
 	//aspect ratio that determines the field of view in the X direction (horizontally)
 	//near distance
 	//far distance
+}
+
+void takeSceneInput(){
+//input and output files
+    FILE * sceneFile = fopen("description.txt", "r");
+    if(sceneFile == NULL){
+        printf("ERROR OPENING FILE %d\n", sceneFile);
+        exit(0);
+    }
+
+    char *dummy = new char[80];
+
+    fscanf(sceneFile, "%d", &LOR);
+    fscanf(sceneFile, "%d", &num_pixels);
+    fgets(dummy, 10, sceneFile);
+
+    fscanf(sceneFile, "%d", &num_objects);
+
+    for(int i=0; i<num_objects; i++){
+        char *type = new char[80];
+
+
+
+
+    }
+
+    SceneObject *checkerBoard = new SceneObject();
+
+
+
+    printf("LOR=%d, num_pixels=%d, num_objects=%d, num_lights=%d\n", LOR, num_pixels, num_objects, num_lights);
+
+
+
+
+
+
 }
 
 int main(int argc, char **argv){
@@ -654,6 +709,9 @@ int main(int argc, char **argv){
 	glutCreateWindow("Fully Controllable Camera & Sphere to/from Cube");
 
 	init();
+
+
+	takeSceneInput();
 
 	glEnable(GL_DEPTH_TEST);	//enable Depth Testing
 
