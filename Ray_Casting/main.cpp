@@ -11,7 +11,7 @@
 
 #include "bitmap_image.hpp"
 
-#define INF 999999
+#define INF 99999
 #define pi (2*acos(0.0))
 #define DEGREE_TO_RADIAN (pi/180.0)
 
@@ -237,6 +237,10 @@ public:
 
     }
 
+    bool operator == (Vector3D const &obj) {
+        return (x == obj.x && y == obj.y && z == obj.z);
+    }
+
     double getX() const {
         return x;
     }
@@ -263,6 +267,10 @@ public:
 
 };
 
+Vector3D vecI(1, 0, 0);
+Vector3D vecJ(0, 1, 0);
+Vector3D vecK(0, 0, 1);
+
 Vector3D crossProduct(Vector3D a, Vector3D b){
     Vector3D result;
 
@@ -278,6 +286,11 @@ double dotProduct(Vector3D a, Vector3D b){
 }
 
 double getRadAngleVectors(Vector3D a, Vector3D b){
+
+    if(a.getVal()==0 || b.getVal() == 0){
+        return -INF;
+    }
+
     return (1.0*dotProduct(a,b)/(a.getVal(), b.getVal()));
 
 }
@@ -350,9 +363,9 @@ public:
 
     Point3D operator + (Vector3D const &obj) {
         Point3D result;
-        result.setX(x - obj.getX());
-        result.setY(y - obj.getY());
-        result.setZ(z - obj.getZ());
+        result.setX(x + obj.getX());
+        result.setY(y + obj.getY());
+        result.setZ(z + obj.getZ());
 
         return result;
     }
@@ -364,10 +377,21 @@ public:
 
     }
 
+    bool operator == (Point3D const &obj) {
+        return (x == obj.x && y == obj.y && z == obj.z);
+    }
+
     void operator = (double const &val) {
         x = val;
         y = val;
         z = val;
+    }
+
+    bool operator == (double const &val) {
+        if(x == val && y == val && z == val)
+            return true;
+        else
+            return false;
     }
 
 
@@ -383,6 +407,8 @@ public:
 
 };
 
+Point3D origin(0, 0, 0);
+Point3D INF_Point(INF, INF, INF);
 
 double getDistance(Point3D a, Point3D b){
     return (a-b).getVal();
@@ -451,11 +477,39 @@ public:
 
 };
 
+ColorRGB white(1, 1, 1);
+ColorRGB black(0, 0, 0);
+ColorRGB red(1, 0, 0);
+ColorRGB green(0, 1, 0);
+ColorRGB blue(0, 0, 1);
+ColorRGB yellow(1, 1, 0);
+ColorRGB cyan(0, 1, 1);
+ColorRGB magenta(1, 0, 1);
 
+
+class LightSource{
+public:
+    ColorRGB lightColor;
+    Point3D lightPosition;
+    double radius;
+
+    LightSource(){
+        lightColor = white.getCopy();
+        Point3D point(0, 0, 0);
+        lightPosition = point;
+        radius = 2;
+    }
+
+    LightSource(ColorRGB color, Point3D point, double r = 2){
+        lightColor = color;
+        lightPosition = point;
+        radius = r;
+    }
+};
 
 Point3D camera_pos;
 Vector3D camera_u, camera_r, camera_l;
-vector <Point3D *> lights;
+vector <LightSource *> lights;
 
 
 class SceneObject{
@@ -480,14 +534,21 @@ public:
         specExp = se;
     }
 
-    virtual ColorRGB getColorAt(){
+    virtual ColorRGB getColorAt(Point3D pos){
         printf("BASE CLASS!!!!!");
-        return objectColor;
+        return objectColor.getCopy();
     }
 
     virtual void draw(){
         //do nothing
         printf("BASE CLASS!!!!!");
+    }
+
+    virtual Point3D getIntersection(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST){
+        //do nothing
+        printf("BASE CLASS!!!!!");
+
+        return INF_Point.getCopy();
     }
 
     virtual void printProperties(){
@@ -499,33 +560,67 @@ public:
 
 class CheckerBoard : public SceneObject{
 public:
-    Vector3D normal;
-
     CheckerBoard(){
-        Vector3D n(0, 0, 1);
-        normal = n;
+        setCoefficients(1, 0, 0, 0, 1);
     }
 
-
-    ColorRGB getColorAt(){
-        return objectColor;
+    ColorRGB getColorAt(Point3D pos){
+        int i =  (int)(pos.getX()/BOARD_SIZE);
+        int j =  (int)(pos.getY()/BOARD_SIZE);
+        if(abs(i+j)%2){
+            return objectColor.getCopy();
+        }
+        else{
+            return black.getCopy();
+        }
     }
 
     void draw(){
-        glColor3f(objectColor.r, objectColor.g, objectColor.b);
         for(int i = -BOARD_LIMIT; i < BOARD_LIMIT; i+=BOARD_SIZE ){
             for(int j = -BOARD_LIMIT; j < BOARD_LIMIT; j += BOARD_SIZE ){
                 if(abs((i+j)/BOARD_SIZE)%2){
-                    glBegin(GL_QUADS);{
-                        glVertex3f( i,  j, 0);
-                        glVertex3f( i, j+BOARD_SIZE, 0);
-                        glVertex3f(i+BOARD_SIZE, j+BOARD_SIZE, 0);
-                        glVertex3f(i+BOARD_SIZE,  j, 0);
-                    }glEnd();
+                    glColor3f(objectColor.r, objectColor.g, objectColor.b);
                 }
+                else{
+                    glColor3f(0, 0, 0);
+                }
+                glBegin(GL_QUADS);{
+                    glVertex3f( i,  j, 0);
+                    glVertex3f( i, j+BOARD_SIZE, 0);
+                    glVertex3f(i+BOARD_SIZE, j+BOARD_SIZE, 0);
+                    glVertex3f(i+BOARD_SIZE,  j, 0);
+                }glEnd();
             }
         }
     }
+
+    Point3D getIntersection(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST){
+        Point3D result = INF_Point.getCopy();
+        if(Vd.z==0){  //PARALLEL
+            if(eyePos.z == 0){  //eye on the same plane
+                result = (eyePos + (Vd*NEAR_DIST));
+            }
+            else{
+                return INF_Point.getCopy();
+            }
+
+        }
+        else{
+            double t = -1.0*(eyePos.z)/Vd.z;
+            if(t < 0){    //BACKSIDE
+                return INF_Point.getCopy();
+            }
+            result = eyePos + (Vd*t);   //intersecting point on the plane
+        }
+
+        if(getDistance(eyePos, result) < nearPointDistance){    //BEFORE NEAR PLANE
+            return INF_Point.getCopy();
+        }
+
+        return result;
+
+    }
+
 
 };
 
@@ -534,9 +629,12 @@ public:
     Point3D center;
     double radius;
 
+    Sphere(){
+        setCoefficients(1, 0, 0, 0, 1);
+    }
 
-    ColorRGB getColorAt(){
-        return objectColor;
+    ColorRGB getColorAt(Point3D pos){
+        return objectColor.getCopy();
     }
 
     void draw(){
@@ -582,6 +680,43 @@ public:
         glPopMatrix();
     }
 
+
+    Point3D getIntersection(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST){
+        Vector3D Ve = (eyePos-center);
+
+        double a = Vd.getVal();
+        double b = 2*dotProduct(Ve, Vd);
+        double c = Ve.getVal() - radius*radius;
+
+        double det = b*b-4*a*c;
+
+        if(det < 0){
+            //solution not real
+            return INF_Point.getCopy();
+        }
+
+        double t1 = 1.0*(-b + sqrt(det))/(2*a);
+        double t2 = 1.0*(-b - sqrt(det))/(2*a);
+
+        Point3D p1 = eyePos + (Vd*t1);
+        Point3D p2 = eyePos + (Vd*t1);
+
+        double dist1 = getDistance(p1, eyePos);
+        double dist2 = getDistance(p2, eyePos);
+
+        if((t1 < 0 || dist1 < nearPointDistance) && (t2 < 0 || dist2 < nearPointDistance)){ //both invalid
+            return INF_Point.getCopy();
+        }
+        else if(t2 < 0 || dist2 < nearPointDistance){   //p2 invalid
+            return p1;
+        }
+        else{   //only p2 valid
+            return p2;
+        }
+    }
+
+
+
     void printProperties(){
         //do nothing
         printf("Sphere: %f %f %f %f %f %f %f %f %f %f %f %f\n", center.x, center.y, center.z, radius, objectColor.r, objectColor.g, objectColor.b, ambCoeff, diffCoeff, specCoeff, refCoeff, specExp);
@@ -597,16 +732,17 @@ public:
     Vector3D normal;
 
     Square(){
-        Vector3D n(0, 0, 1);
-        normal = n;
+        normal = vecK;
+        setCoefficients(1, 0, 0, 0, 1);
     }
 
     void setNormal(Vector3D n){
         normal = n;
+        normal.normalize();
     }
 
-    ColorRGB getColorAt(){
-        return objectColor;
+    ColorRGB getColorAt(Point3D pos){
+        return objectColor.getCopy();
     }
 
     void draw(){
@@ -619,6 +755,39 @@ public:
         }glEnd();
     }
 
+    Point3D getIntersection(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST){
+        Vector3D Ve = (eyePos-a);
+        Point3D result = INF_Point.getCopy();
+
+        if(dotProduct(Vd,normal)==0 && dotProduct(Ve,normal)==0){ //parallel and on the same plane
+            result = (eyePos + (Vd*NEAR_DIST));
+        }
+        else if(dotProduct(Vd,normal)==0){   //only parallel
+            return INF_Point.getCopy();
+        }
+        else{
+            double t = 1.0*dotProduct(Ve,normal)/dotProduct(Vd,normal);
+
+            if(t < 0){  //BACKSIDE
+                return INF_Point.getCopy();
+            }
+
+            result = eyePos + (Vd*t);   //intersecting point on the plane
+        }
+
+        if(getDistance(eyePos, result) < nearPointDistance){    //BEFORE NEAR PLANE
+            return INF_Point.getCopy();
+        }
+
+        if(result.z != a.z || result.x < a.x || result.y < a.y || result.x > a.x+length || result.y > a.y+length){  //not inside triangle
+            return INF_Point.getCopy();
+        }
+
+        return result;
+
+    }
+
+
 };
 
 
@@ -627,6 +796,10 @@ public:
     Point3D a, b, c;
 
     Vector3D normal;
+
+    Triangle(){
+        setCoefficients(1, 0, 0, 0, 1);
+    }
 
     setNormal(){
         Vector3D v1 = (b-a);
@@ -637,8 +810,8 @@ public:
 
     }
 
-    ColorRGB getColorAt(){
-        return objectColor;
+    ColorRGB getColorAt(Point3D pos){
+        return objectColor.getCopy();
     }
 
 
@@ -651,13 +824,52 @@ public:
         }glEnd();
     }
 
+    Point3D getIntersection(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST){
+
+        Vector3D Ve = (eyePos-a);
+        Point3D result = INF_Point.getCopy();
+
+        if(dotProduct(Vd,normal)==0 && dotProduct(Ve,normal)==0){ //parallel and on the same plane
+            result = (eyePos + (Vd*NEAR_DIST));
+        }
+        else if(dotProduct(Vd,normal)==0){   //only parallel
+            return INF_Point.getCopy();
+        }
+        else{
+
+            double t = 1.0*dotProduct(Ve,normal)/dotProduct(Vd,normal);
+            if(t < 0){  //BACKSIDE
+                return INF_Point.getCopy();
+            }
+
+            result = eyePos + (Vd*t);   //intersecting point on the plane
+        }
+
+
+        if(getDistance(eyePos, result) < nearPointDistance){    //BEFORE NEAR PLANE
+            return INF_Point.getCopy();
+        }
+
+        if(result.z != a.z || result.x < a.x || result.y < a.y || result.x > a.x+length || result.y > a.y+length){  //not inside triangle
+            return INF_Point.getCopy();
+        }
+
+        return result;
+
+    }
+
 };
 
 
 vector <SceneObject *> objects;
 
 
-void createImage(Matrix <ColorRGB> colorArr){
+void createImage(Matrix <ColorRGB> colorArr, char* imageName = NULL){
+    if(imageName == NULL){
+        imageName = new char[32];
+        strcpy(imageName, "out.bmp");
+    }
+
     int n = colorArr.getN();
     int m = colorArr.getM();
     bitmap_image image(n, m);
@@ -667,8 +879,19 @@ void createImage(Matrix <ColorRGB> colorArr){
             image.set_pixel(x, y, 255*temp.r, 255*temp.g, 255*temp.b);
         }
     }
-    image.save_image("out.bmp");
-    printf("Created bmp image\n");
+    image.save_image(imageName);
+    printf("Created image %s\n", imageName);
+
+}
+
+
+ColorRGB findPixelColor(Point3D eyePos, Vector3D Vd, int recurLevel = 1){
+    if(recurLevel == 0){
+        return black.getCopy();
+    }
+
+
+
 
 }
 
@@ -700,7 +923,7 @@ void captureScene(){
 
 
     Point3D midPoint = camera_pos+(camera_l*NEAR_DIST);
-    double half = NEAR_DIST*tan(DEGREE_TO_RADIAN*fov_Y);
+    double half = NEAR_DIST*tan(DEGREE_TO_RADIAN*fov_Y*0.5);
     Point3D highPoint = midPoint + (left*half) + (up*half);
 
     double pixelLen = 2.0*half/num_pixels;
@@ -712,16 +935,29 @@ void captureScene(){
         }
     }
 
+
+    for (int i = 0; i < num_pixels; i++) {
+        for (int j = 0; j < num_pixels; j++) {
+            Point3D pixelPos = pixelPositions.getVal(i, j);
+
+            Vector3D vectorToPixel = (pixelPos-camera_pos);
+            vectorToPixel.normalize();
+
+
+
+
+        }
+    }
+
+
+
+
     /*for (int i = 0; i < num_pixels; i++) {
         for (int j = 0; j < num_pixels; j++) {
             printf("<%f,%f,%f> ", pixelPositions.getVal(i,j).x, pixelPositions.getVal(i,j).y, pixelPositions.getVal(i,j).z);
         }
         printf("\n");
     }*/
-
-
-
-
 
     createImage(pixelColors);
     endTime = clock();
@@ -877,13 +1113,15 @@ void display(){
 
 
     //draw lights
-	ColorRGB white;
 	Sphere temp;
     SceneObject *obj = &temp;
 	for(int i=0; i<lights.size(); i++){
-        temp.setColor(white);
-        temp.radius = 2;
-        temp.center = *(lights[i]);
+        LightSource *light = lights[i];
+
+        temp.setColor(light->lightColor);
+        temp.radius = light->radius;
+        temp.center = light->lightPosition;
+
         obj->draw();
 	}
 
@@ -1075,12 +1313,12 @@ void takeSceneInput(){
 
     }
 
+    //checkerboard
     CheckerBoard *board = new CheckerBoard();
     SceneObject *tempObj = board;
-    ColorRGB white;
-    tempObj->setColor(white);
+    tempObj->setColor(white.getCopy());
+    tempObj->setCoefficients(0.4, 0.2, 0.2, 0.2, 1);
     objects.push_back(tempObj);
-
 
     //lights
     fgets(dummy, 10, sceneFile);
@@ -1089,10 +1327,12 @@ void takeSceneInput(){
 
     for(int i; i<num_lights; i++){
         fscanf(sceneFile, "%lf %lf %lf", &x, &y, &z);
-        Point3D *lightPos = new Point3D(x, y, z);
-        lights.push_back(lightPos);
+        Point3D lightPos(x, y, z);
 
-        printf("light at %f %f %f\n", lights[i]->x, lights[i]->y, lights[i]->z);
+        LightSource *light = new LightSource(white.getCopy(), lightPos);
+        lights.push_back(light);
+
+        printf("light at %f %f %f\n", lights[i]->lightPosition.x, lights[i]->lightPosition.y, lights[i]->lightPosition.z);
     }
 
     printf("LOR=%d, num_pixels=%d, num_objects=%d, num_lights=%d\n", LOR, num_pixels, num_objects, num_lights);

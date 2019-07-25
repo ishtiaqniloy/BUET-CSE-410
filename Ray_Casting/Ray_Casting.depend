@@ -1,15 +1,27 @@
 # depslib dependency file v1.0
-1563996900 source:d:\drive\l-4 t-1\cse 410 - computer graphics sessional\assignment 3\cse_410_assignment3_ray_casting\ray_casting\main.cpp
+1564084261 source:d:\drive\l-4 t-1\cse 410 - computer graphics sessional\assignment 3\cse_410_assignment3_ray_casting\ray_casting\main.cpp
 	<cstdio>
 	<cstdlib>
 	<cmath>
+	<ctime>
 	<iostream>
 	<vector>
 	<windows.h>
 	<glut.h>
+	"bitmap_image.hpp"
 
 1392007564 d:\drive\l-4 t-1\cse 410 - computer graphics sessional\assignment 3\cse_410_assignment3_ray_casting\ray_casting\opengl\include\glut.h
 	<windows.h>
 	<GL/gl.h>
 	<GL/glu.h>
+
+1479975262 d:\drive\l-4 t-1\cse 410 - computer graphics sessional\assignment 3\cse_410_assignment3_ray_casting\ray_casting\bitmap_image.hpp
+	<algorithm>
+	<cmath>
+	<cstdlib>
+	<fstream>
+	<iostream>
+	<iterator>
+	<limits>
+	<string>
 

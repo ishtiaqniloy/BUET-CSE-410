@@ -1,17 +1,17 @@
-3
+1
 10
 
 4
 
-sphere 
-40.0 0.0 10.0 
-10.0 
+sphere
+40.0 0.0 10.0
+10.0
 0.0 1.0 0.0
 0.4 0.2 0.2 0.2
 5
 
 sphere
-30.0 60.0 20.0 
+30.0 60.0 20.0
 20.0
 0.0 0.0 1.0
 0.2 0.2 0.4 0.2
@@ -34,7 +34,7 @@ pyramid
 
 2
 70.0 70.0 70.0
--70 70 70 
+-70 70 70
 
 
 
@@ -55,7 +55,7 @@ sphere type of object
 5 specular exponent
 
 sphere
-30.0 60.0 20.0 
+30.0 60.0 20.0
 20.0
 0.0 0.0 1.0
 0.4 0.1 0.3 0.2
@@ -68,9 +68,9 @@ sphere
 0.4 0.3 0.1 0.2
 10
 
-pyramid type of object 
+pyramid type of object
 0.0 0.0 0.0 lowest x y z ordinate
-30.0 60 length of base and height of pyramid 
+30.0 60 length of base and height of pyramid
 1.0 0.0 0.0 color
 0.4 0.2 0.1 0.3 ambient diffuse specular reflection coefficient
 5 specular exponent
