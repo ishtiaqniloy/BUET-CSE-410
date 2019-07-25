@@ -12,6 +12,7 @@
 #include "bitmap_image.hpp"
 
 #define INF 99999
+#define EPSILON 0.00001
 #define pi (2*acos(0.0))
 #define DEGREE_TO_RADIAN (pi/180.0)
 
@@ -596,8 +597,8 @@ public:
 
     Point3D getIntersection(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST){
         Point3D result = INF_Point.getCopy();
-        if(Vd.z==0){  //PARALLEL
-            if(eyePos.z == 0){  //eye on the same plane
+        if(Vd.z < EPSILON){  //PARALLEL
+            if(eyePos.z == 0){  //eye on the same plane as checkerboard
                 result = (eyePos + (Vd*NEAR_DIST));
             }
             else{
@@ -759,10 +760,10 @@ public:
         Vector3D Ve = (eyePos-a);
         Point3D result = INF_Point.getCopy();
 
-        if(dotProduct(Vd,normal)==0 && dotProduct(Ve,normal)==0){ //parallel and on the same plane
+        if(dotProduct(Vd,normal)<EPSILON && dotProduct(Ve,normal)<EPSILON){ //parallel and on the same plane
             result = (eyePos + (Vd*NEAR_DIST));
         }
-        else if(dotProduct(Vd,normal)==0){   //only parallel
+        else if(dotProduct(Vd,normal)<EPSILON){   //only parallel
             return INF_Point.getCopy();
         }
         else{
@@ -789,7 +790,6 @@ public:
 
 
 };
-
 
 class Triangle : public SceneObject{
 public:
@@ -825,14 +825,15 @@ public:
     }
 
     Point3D getIntersection(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST){
+        return INF_Point.getCopy();
 
         Vector3D Ve = (eyePos-a);
         Point3D result = INF_Point.getCopy();
 
-        if(dotProduct(Vd,normal)==0 && dotProduct(Ve,normal)==0){ //parallel and on the same plane
+        if(dotProduct(Vd,normal)<EPSILON && dotProduct(Ve,normal)<EPSILON){ //parallel and on the same plane
             result = (eyePos + (Vd*NEAR_DIST));
         }
-        else if(dotProduct(Vd,normal)==0){   //only parallel
+        else if(dotProduct(Vd,normal)<EPSILON){   //only parallel
             return INF_Point.getCopy();
         }
         else{
@@ -850,7 +851,14 @@ public:
             return INF_Point.getCopy();
         }
 
-        if(result.z != a.z || result.x < a.x || result.y < a.y || result.x > a.x+length || result.y > a.y+length){  //not inside triangle
+        Vector3D v1 = (b-a);
+        Vector3D v2 = (c-a);
+        Vector3D v3 = (result-a);
+
+        double k1 = dotProduct(v3,v1);
+        double k2 = dotProduct(v3,v2);
+
+        if(k1<0 || k2<0 || k1+k2>1){  //not inside triangle
             return INF_Point.getCopy();
         }
 
@@ -885,29 +893,53 @@ void createImage(Matrix <ColorRGB> colorArr, char* imageName = NULL){
 }
 
 
-ColorRGB findPixelColor(Point3D eyePos, Vector3D Vd, int recurLevel = 1){
+ColorRGB findPixelColor(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST, int recurLevel = 1){
+
     if(recurLevel == 0){
         return black.getCopy();
     }
 
+    int len = objects.size();
+
+    int minIdx = -1;
+    double minDist = INF;
+    Point3D minPoint = INF_Point.getCopy();
+    ColorRGB minColor  = black;
+
+    for(int i=0; i<len; i++){
+        Point3D intersectPoint = objects[i]->getIntersection(eyePos, Vd, nearPointDistance);
+        if(intersectPoint == INF_Point){
+            continue;
+        }
+        double dist = getDistance(intersectPoint, eyePos);
+        if(dist < nearPointDistance){
+            continue;
+        }
+        if(dist < minDist){
+            minDist = dist;
+            minIdx = i;
+            minPoint = intersectPoint;
+        }
+
+    }
+
+    if(minDist < INF){
+        printf("Pixel hit with object %d\n", minIdx);
+        minColor = objects[minIdx]->getColorAt(minPoint);
+    }
+
+
+
+    return minColor;
 
 
 
 }
 
-
-void captureScene(){
-    //capture here
-    clock_t startTime, endTime;
-    double cpu_time_used;
-    startTime = clock();
-    printf("\n\nCapture Scene initiated\n");
-
-    Matrix <Point3D> pixelPositions(num_pixels, num_pixels, false);
-    Matrix <ColorRGB> pixelColors(num_pixels, num_pixels, false);
-
-
+Matrix<Point3D> getPixelPositions(){
     //working with pixelPositions array
+    Matrix<Point3D> result(num_pixels, num_pixels, false);
+
     Vector3D look = camera_l.getCopy();
     look.normalize();
 
@@ -931,35 +963,50 @@ void captureScene(){
     for (int i = 0; i < num_pixels; i++) {
         for (int j = 0; j < num_pixels; j++) {
             Point3D temp = highPoint + (down*(i+0.5) + right*(j+0.5))*pixelLen;
-            pixelPositions.setVal(i, j, temp);
+            result.setVal(i, j, temp);
         }
     }
 
+    return result;
 
+
+}
+
+void captureScene(){
+    //capture here
+    clock_t startTime, endTime;
+    double cpu_time_used;
+    startTime = clock();
+    printf("\n\nCapture Scene initiated with camera at <%f, %f, %f>\n", camera_pos.x, camera_pos.y, camera_pos.z);
+
+    Matrix <Point3D> pixelPositions = getPixelPositions();
+
+    Matrix <ColorRGB> pixelColors(num_pixels, num_pixels, false);
+    //initialize
+    for (int i = 0; i < num_pixels; i++) {
+        for (int j = 0; j < num_pixels; j++) {
+            pixelColors.setVal(i, j, black);
+        }
+    }
+
+    //for each pixel
     for (int i = 0; i < num_pixels; i++) {
         for (int j = 0; j < num_pixels; j++) {
             Point3D pixelPos = pixelPositions.getVal(i, j);
 
-            Vector3D vectorToPixel = (pixelPos-camera_pos);
-            vectorToPixel.normalize();
+            Vector3D Vd = (pixelPos-camera_pos);
+            Vd.normalize();
 
+            double nearPointDistance = distance(&pixelPos, &camera_pos);
 
+            ColorRGB pixelColor = findPixelColor(camera_pos, Vd, nearPointDistance, LOR);
 
-
+            pixelColors.setVal(i, j, pixelColor);
         }
     }
 
 
-
-
-    /*for (int i = 0; i < num_pixels; i++) {
-        for (int j = 0; j < num_pixels; j++) {
-            printf("<%f,%f,%f> ", pixelPositions.getVal(i,j).x, pixelPositions.getVal(i,j).y, pixelPositions.getVal(i,j).z);
-        }
-        printf("\n");
-    }*/
-
-    createImage(pixelColors);
+    createImage(pixelColors, "output.bmp");
     endTime = clock();
     cpu_time_used = (1000*(double) (endTime - startTime)) / CLOCKS_PER_SEC;
     printf("Time taken in capturing the scene: %f ms\n", cpu_time_used);
