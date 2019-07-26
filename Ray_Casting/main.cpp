@@ -900,58 +900,50 @@ void createImage(ColorRGB** colorArr, int row = num_pixels, int col = num_pixels
 ColorRGB findPixelColor(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST, int recurLevel = 1);
 
 ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST, int recurLevel = 1){
-
+    //printf("In getLightColors()\n");
     if(recurLevel == 0){
         return black.getCopy();
     }
+    ColorRGB objectColor = minObject->getColorAt(minPoint);
+    Vector3D normal = minObject->getNormalAt(minPoint);
+    ColorRGB lColor = black.getCopy();
 
-        ColorRGB objectColor = minObject->getColorAt(minPoint);
+    int len = lights.size();
+    for(int i=0; i<len; i++){
+        LightSource *currLight = lights[i];
 
-        Vector3D normal = minObject->getNormalAt(minPoint);
-        if(dotProduct(Vd,normal) > 0){
+        Vector3D L = (minPoint-currLight->lightPosition);
+        if(dotProduct(L,normal) > 0){
             normal = normal.getOppositeVector().getCopy();
+            normal.normalize();
         }
 
-        ColorRGB lColor = black.getCopy();
+        Vector3D R = normal*2*dotProduct(L,normal)-L;
+        double theta = getRadAngleVectors(R,normal);
 
-        int len = lights.size();
+        Vector3D V = Vd.getOppositeVector();
+        double phi = getRadAngleVectors(R, V);
 
-        for(int i=0; i<len; i++){
-            LightSource *currLight = lights[i];
-
-            Vector3D L = (minPoint-currLight->lightPosition);
-            Vector3D R = normal*2*dotProduct(L,normal)-L;
-            double theta = getRadAngleVectors(R,normal);
-
-            Vector3D V = Vd.getOppositeVector();
-            double phi = getRadAngleVectors(R, V);
-
-            if(cos(theta) > EPSILON){   //diffusion light
-                lColor = lColor + objectColor*cos(theta)*minObject->diffCoeff;
-            }
-
-            if(cos(phi) > EPSILON){   //specular light
-                lColor = lColor + currLight->lightColor*(pow(cos(phi), minObject->specExp))*minObject->specCoeff;
-            }
-
-            if(recurLevel <= 1){
-                return lColor;
-            }
-            else{
-                return (lColor+findPixelColor(minPoint, R, NEAR_DIST, recurLevel-1));
-
-            }
-
-
-
-
-
+        if(cos(theta) > EPSILON){   //diffusion light
+            //printf("Adding diff\n");
+            lColor = lColor + objectColor*cos(theta)*minObject->diffCoeff;
+            //lColor = lColor + objectColor*dotProduct(L*(-1),normal)*minObject->diffCoeff;
         }
 
+        if(cos(phi) > EPSILON){   //specular light
+            //printf("Adding spec\n");
+            lColor = lColor + currLight->lightColor*(pow(cos(phi), minObject->specExp))*minObject->specCoeff;
+            //lColor = lColor + currLight->lightColor*(pow(dotProduct(R,V), minObject->specExp))*minObject->specCoeff;
+        }
+        if(recurLevel > 1){
+            //return lColor;  //without reflection
+            //printf("Adding ref\n");
+            return (lColor+findPixelColor(minPoint, R, NEAR_DIST, recurLevel-1));
+        }
 
+    }
 
-
-
+    return lColor;
 
 }
 
@@ -996,8 +988,9 @@ ColorRGB findPixelColor(Point3D eyePos, Vector3D Vd, double nearPointDistance, i
 
         SceneObject* minObject = objects[minIdx];
 
-        //minColor = minObject->getColorAt(minPoint)*minObject->ambCoeff;
-        minColor = minObject->getColorAt(minPoint)*minObject->ambCoeff + getLightColors(minPoint, minObject, eyePos, Vd, nearPointDistance, recurLevel);
+        //minColor = minObject->getColorAt(minPoint);   //basic
+        //minColor = minObject->getColorAt(minPoint)*minObject->ambCoeff;   //only  ambient light
+        //minColor = minObject->getColorAt(minPoint)*minObject->ambCoeff + getLightColors(minPoint, minObject, eyePos, Vd, nearPointDistance, recurLevel);
 
     }
 
