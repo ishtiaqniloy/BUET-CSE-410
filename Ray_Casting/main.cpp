@@ -934,6 +934,10 @@ ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos
     Vector3D normal = minObject->getNormalAt(minPoint);
     normal.normalize();
 
+    if(dotProduct(Vd, normal) > 0){
+        normal = normal.getOppositeVector();
+    }
+
     Vector3D V = eyePos - minPoint;
     V.normalize();
 
@@ -962,7 +966,6 @@ ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos
 
 
         lColor = lColor + objectColor*(dl);
-        //lColor = lColor + objectColor*(sl);
         lColor = lColor + currLight->lightColor*(sl);
 
         ///accumulating all the effects from different lights
@@ -974,8 +977,12 @@ ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos
         Vector3D Vr = Vd-normal*2*dotProduct(Vd,normal);
         Vr.normalize();
 
+        //printf("normal: <%f,%f,%f>\n", normal.x, normal.y, normal.z);
+        //printf("Vd    : <%f,%f,%f>\n", Vd.x, Vd.y, Vd.z);
+        //printf("Vr    : <%f,%f,%f>\n\n", Vr.x, Vr.y, Vr.z);
+
         ColorRGB reflection =  findPixelColor(minPoint, Vr, NEAR_DIST, recurLevel-1);
-        reflection.normalize();
+        //reflection.normalize();
 
         totalLighting = totalLighting + reflection*minObject->refCoeff; //comment out to omit reflection
     }
