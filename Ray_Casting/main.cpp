@@ -935,6 +935,7 @@ ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos
     normal.normalize();
 
     Vector3D V = eyePos - minPoint;
+    V.normalize();
 
     int len = lights.size();
     for(int i=0; i<len; i++){
@@ -943,28 +944,12 @@ ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos
 
         Vector3D L = (minPoint - currLight->lightPosition);
         L.normalize();
+
         Vector3D oppositeL = L.getOppositeVector();
         oppositeL.normalize();
 
         Vector3D R = L-normal*2*dotProduct(L,normal);
         R.normalize();
-
-        /*double theta = getRadAngleVectors(oppositeL,normal);
-        double phi = getRadAngleVectors(R, V);
-
-        ///diffusion light
-        //ColorRGB diff = objectColor*cos(theta)*minObject->diffCoeff;
-        ColorRGB diff = objectColor*dotProduct(oppositeL, normal)*minObject->diffCoeff;
-        diff.normalize();   //cancels out negative
-
-        ///specular light
-        ColorRGB spec = currLight->lightColor*(pow(cos(phi), minObject->specExp))*minObject->specCoeff;
-        spec.normalize();   //cancels out negative
-
-        if(VERBOSE >= 1){
-            printf("Diff: <%f,%f,%f>\n", diff.r, diff.g, diff.b);
-            printf("Spec: <%f,%f,%f>\n", spec.r, spec.g, spec.b);
-        }*/
 
         double dl = dotProduct(oppositeL, normal)*minObject->diffCoeff;
         dl = max(0.0, dl);
@@ -974,8 +959,9 @@ ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos
         sl = min(1.0, dl);
 
 
-        //lColor = lColor + objectColor*(dl);
-        //lColor = lColor + currLight->lightColor*(sl);
+        lColor = lColor + objectColor*(dl);
+        //lColor = lColor + objectColor*(sl);
+        lColor = lColor + currLight->lightColor*(sl);
 
 
         ///reflection
@@ -1508,7 +1494,7 @@ void takeSceneInput(){
     CheckerBoard *board = new CheckerBoard();
     SceneObject *tempObj = board;
     tempObj->setColor(white.getCopy());
-    tempObj->setCoefficients(0.4, 0.3, 0.1, 0.2, 1);
+    tempObj->setCoefficients(0.4, 0.2, 0.2, 0.2, 12);
     objects.push_back(tempObj);
 
     //lights
@@ -1537,7 +1523,7 @@ int main(int argc, char **argv){
 	glutInitWindowPosition(50, 50);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGB);	//Depth, Double buffer, RGB color
 
-	glutCreateWindow("Fully Controllable Camera & Sphere to/from Cube");
+	glutCreateWindow("Ray Casting");
 
 	init();
 
