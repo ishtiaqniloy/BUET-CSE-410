@@ -391,6 +391,15 @@ public:
         return result;
     }
 
+    void normalize(){
+        r = max(0.0, r);
+        r = min(1.0, r);
+        g = max(0.0, g);
+        g = min(1.0, g);
+        b = max(0.0, b);
+        b = min(1.0, b);
+    }
+
 
 };
 
@@ -488,7 +497,7 @@ public:
     }
 
     Vector3D getNormalAt(Point3D pos){
-        return vecK;
+        return vecK.getCopy();
     }
 
     ColorRGB getColorAt(Point3D pos){
@@ -571,7 +580,9 @@ public:
 
 
     Vector3D getNormalAt(Point3D pos){
-        return (pos-center);
+        Vector3D n = (pos-center);
+        n.normalize();
+        return n;
     }
 
 
@@ -702,7 +713,7 @@ public:
 
 
     Vector3D getNormalAt(Point3D pos){
-        return normal.getCopy();
+        return vecK.getCopy();
     }
 
     void draw(){
@@ -797,11 +808,16 @@ public:
         setCoefficients(1, 0, 0, 0, 1);
     }
 
-    setNormal(){
+    void setNormal(){
         Vector3D v1 = (b-a);
         Vector3D v2 = (c-a);
 
         normal = crossProduct(v1, v2);
+        normal.normalize();
+
+        if(dotProduct(vecK, normal) < 0){
+            normal = normal.getOppositeVector();
+        }
         normal.normalize();
 
     }
@@ -811,7 +827,15 @@ public:
     }
 
     Vector3D getNormalAt(Point3D pos){
-        return normal.getCopy();
+        Vector3D n = normal.getCopy();
+
+        if(dotProduct(vecK, n) < 0){
+            n = n.getOppositeVector();
+        }
+
+        n.normalize();
+
+        return n;
     }
 
 
@@ -905,45 +929,68 @@ ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos
         return black.getCopy();
     }
     ColorRGB objectColor = minObject->getColorAt(minPoint);
+    ColorRGB totalLighting = objectColor*minObject->ambCoeff;
+
     Vector3D normal = minObject->getNormalAt(minPoint);
-    ColorRGB lColor = black.getCopy();
+    normal.normalize();
+
+    Vector3D V = eyePos - minPoint;
 
     int len = lights.size();
     for(int i=0; i<len; i++){
+        ColorRGB lColor = black.getCopy();
         LightSource *currLight = lights[i];
 
-        Vector3D L = (minPoint-currLight->lightPosition);
-        if(dotProduct(L,normal) > 0){
-            normal = normal.getOppositeVector().getCopy();
-            normal.normalize();
-        }
+        Vector3D L = (minPoint - currLight->lightPosition);
+        L.normalize();
+        Vector3D oppositeL = L.getOppositeVector();
+        oppositeL.normalize();
 
-        Vector3D R = normal*2*dotProduct(L,normal)-L;
-        double theta = getRadAngleVectors(R,normal);
+        Vector3D R = L-normal*2*dotProduct(L,normal);
+        R.normalize();
 
-        Vector3D V = Vd.getOppositeVector();
+        /*double theta = getRadAngleVectors(oppositeL,normal);
         double phi = getRadAngleVectors(R, V);
 
-        if(cos(theta) > EPSILON){   //diffusion light
-            //printf("Adding diff\n");
-            lColor = lColor + objectColor*cos(theta)*minObject->diffCoeff;
-            //lColor = lColor + objectColor*dotProduct(L*(-1),normal)*minObject->diffCoeff;
-        }
+        ///diffusion light
+        //ColorRGB diff = objectColor*cos(theta)*minObject->diffCoeff;
+        ColorRGB diff = objectColor*dotProduct(oppositeL, normal)*minObject->diffCoeff;
+        diff.normalize();   //cancels out negative
 
-        if(cos(phi) > EPSILON){   //specular light
-            //printf("Adding spec\n");
-            lColor = lColor + currLight->lightColor*(pow(cos(phi), minObject->specExp))*minObject->specCoeff;
-            //lColor = lColor + currLight->lightColor*(pow(dotProduct(R,V), minObject->specExp))*minObject->specCoeff;
-        }
+        ///specular light
+        ColorRGB spec = currLight->lightColor*(pow(cos(phi), minObject->specExp))*minObject->specCoeff;
+        spec.normalize();   //cancels out negative
+
+        if(VERBOSE >= 1){
+            printf("Diff: <%f,%f,%f>\n", diff.r, diff.g, diff.b);
+            printf("Spec: <%f,%f,%f>\n", spec.r, spec.g, spec.b);
+        }*/
+
+        double dl = dotProduct(oppositeL, normal)*minObject->diffCoeff;
+        dl = max(0.0, dl);
+        dl = min(1.0, dl);
+        double sl = pow(dotProduct(R,V), minObject->specExp)*minObject->specCoeff;
+        sl = max(0.0, dl);
+        sl = min(1.0, dl);
+
+
+        //lColor = lColor + objectColor*(dl);
+        //lColor = lColor + currLight->lightColor*(sl);
+
+
+        ///reflection
         if(recurLevel > 1){
-            //return lColor;  //without reflection
-            //printf("Adding ref\n");
-            return (lColor+findPixelColor(minPoint, R, NEAR_DIST, recurLevel-1));
+            ColorRGB reflection =  lColor+findPixelColor(minPoint, R, NEAR_DIST, recurLevel-1);
+            reflection.normalize();
+            lColor = lColor + reflection*minObject->refCoeff; //comment out to omit reflection
         }
 
+        ///accumulating all the effects from different lights
+        totalLighting = totalLighting + lColor;
     }
 
-    return lColor;
+    totalLighting.normalize();
+    return totalLighting;
 
 }
 
@@ -990,14 +1037,11 @@ ColorRGB findPixelColor(Point3D eyePos, Vector3D Vd, double nearPointDistance, i
 
         //minColor = minObject->getColorAt(minPoint);   //basic
         //minColor = minObject->getColorAt(minPoint)*minObject->ambCoeff;   //only  ambient light
-        //minColor = minObject->getColorAt(minPoint)*minObject->ambCoeff + getLightColors(minPoint, minObject, eyePos, Vd, nearPointDistance, recurLevel);
+        minColor = getLightColors(minPoint, minObject, eyePos, Vd, nearPointDistance, recurLevel);
 
     }
 
-
-
     return minColor;
-
 
 }
 
@@ -1464,7 +1508,7 @@ void takeSceneInput(){
     CheckerBoard *board = new CheckerBoard();
     SceneObject *tempObj = board;
     tempObj->setColor(white.getCopy());
-    tempObj->setCoefficients(0.4, 0.2, 0.2, 0.2, 1);
+    tempObj->setCoefficients(0.4, 0.3, 0.1, 0.2, 1);
     objects.push_back(tempObj);
 
     //lights
