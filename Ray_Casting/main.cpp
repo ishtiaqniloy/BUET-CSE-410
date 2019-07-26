@@ -362,9 +362,9 @@ public:
 
     ColorRGB operator + (ColorRGB const &obj) {
         ColorRGB result;
-        result.r = obj.r;
-        result.g = obj.g;
-        result.b = obj.b;
+        result.r = r + obj.r;
+        result.g = g + obj.g;
+        result.b = b + obj.b;
 
         return result;
     }
@@ -456,6 +456,12 @@ public:
         return objectColor.getCopy();
     }
 
+    virtual Vector3D getNormalAt(Point3D pos){
+        printf("BASE CLASS!!!!!");
+        Vector3D temp;
+        return temp;
+    }
+
     virtual void draw(){
         //do nothing
         printf("BASE CLASS!!!!!");
@@ -479,6 +485,10 @@ class CheckerBoard : public SceneObject{
 public:
     CheckerBoard(){
         setCoefficients(1, 0, 0, 0, 1);
+    }
+
+    Vector3D getNormalAt(Point3D pos){
+        return vecK;
     }
 
     ColorRGB getColorAt(Point3D pos){
@@ -558,6 +568,12 @@ public:
     ColorRGB getColorAt(Point3D pos){
         return objectColor.getCopy();
     }
+
+
+    Vector3D getNormalAt(Point3D pos){
+        return (pos-center);
+    }
+
 
     void draw(){
         //printf("In sphere draw function...\n");
@@ -684,6 +700,11 @@ public:
         return objectColor.getCopy();
     }
 
+
+    Vector3D getNormalAt(Point3D pos){
+        return normal.getCopy();
+    }
+
     void draw(){
         glColor3f(objectColor.r, objectColor.g, objectColor.b);
         glBegin(GL_QUADS);{
@@ -789,6 +810,10 @@ public:
         return objectColor.getCopy();
     }
 
+    Vector3D getNormalAt(Point3D pos){
+        return normal.getCopy();
+    }
+
 
     void draw(){
         glColor3f(objectColor.r, objectColor.g, objectColor.b);
@@ -872,7 +897,66 @@ void createImage(ColorRGB** colorArr, int row = num_pixels, int col = num_pixels
 }
 
 
-ColorRGB findPixelColor(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST, int recurLevel = 1){
+ColorRGB findPixelColor(Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST, int recurLevel = 1);
+
+ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos, Vector3D Vd, double nearPointDistance = NEAR_DIST, int recurLevel = 1){
+
+    if(recurLevel == 0){
+        return black.getCopy();
+    }
+
+        ColorRGB objectColor = minObject->getColorAt(minPoint);
+
+        Vector3D normal = minObject->getNormalAt(minPoint);
+        if(dotProduct(Vd,normal) > 0){
+            normal = normal.getOppositeVector().getCopy();
+        }
+
+        ColorRGB lColor = black.getCopy();
+
+        int len = lights.size();
+
+        for(int i=0; i<len; i++){
+            LightSource *currLight = lights[i];
+
+            Vector3D L = (minPoint-currLight->lightPosition);
+            Vector3D R = normal*2*dotProduct(L,normal)-L;
+            double theta = getRadAngleVectors(R,normal);
+
+            Vector3D V = Vd.getOppositeVector();
+            double phi = getRadAngleVectors(R, V);
+
+            if(cos(theta) > EPSILON){   //diffusion light
+                lColor = lColor + objectColor*cos(theta)*minObject->diffCoeff;
+            }
+
+            if(cos(phi) > EPSILON){   //specular light
+                lColor = lColor + currLight->lightColor*(pow(cos(phi), minObject->specExp))*minObject->specCoeff;
+            }
+
+            if(recurLevel <= 1){
+                return lColor;
+            }
+            else{
+                return (lColor+findPixelColor(minPoint, R, NEAR_DIST, recurLevel-1));
+
+            }
+
+
+
+
+
+        }
+
+
+
+
+
+
+}
+
+
+ColorRGB findPixelColor(Point3D eyePos, Vector3D Vd, double nearPointDistance, int recurLevel){
 
     if(recurLevel == 0){
         return black.getCopy();
@@ -910,13 +994,16 @@ ColorRGB findPixelColor(Point3D eyePos, Vector3D Vd, double nearPointDistance = 
             printf("Pixel hit with object %d\n", minIdx);
         }
 
-        minColor = objects[minIdx]->getColorAt(minPoint);
+        SceneObject* minObject = objects[minIdx];
+
+        //minColor = minObject->getColorAt(minPoint)*minObject->ambCoeff;
+        minColor = minObject->getColorAt(minPoint)*minObject->ambCoeff + getLightColors(minPoint, minObject, eyePos, Vd, nearPointDistance, recurLevel);
+
     }
 
 
 
     return minColor;
-
 
 
 }
