@@ -442,6 +442,7 @@ class SceneObject{
 public:
     ColorRGB objectColor;
     double ambCoeff, diffCoeff, specCoeff, refCoeff, specExp;
+    int type;
 
 
     void setColor(ColorRGB color){
@@ -452,12 +453,13 @@ public:
         return objectColor.getCopy();
     }
 
-    void setCoefficients(double a, double d, double s, double r, double se){
+    void setCoefficients(int t, double a, double d, double s, double r, double se){
         ambCoeff = a;
         diffCoeff = d;
         specCoeff = s;
         refCoeff = r;
         specExp = se;
+        type = t;
     }
 
     virtual ColorRGB getColorAt(Point3D pos){
@@ -493,7 +495,7 @@ public:
 class CheckerBoard : public SceneObject{
 public:
     CheckerBoard(){
-        setCoefficients(1, 0, 0, 0, 1);
+        setCoefficients(BOARD, 1, 0, 0, 0, 1);
     }
 
     Vector3D getNormalAt(Point3D pos){
@@ -571,7 +573,7 @@ public:
     double radius;
 
     Sphere(){
-        setCoefficients(1, 0, 0, 0, 1);
+        setCoefficients(SPHERE, 1, 0, 0, 0, 1);
     }
 
     ColorRGB getColorAt(Point3D pos){
@@ -699,7 +701,7 @@ public:
 
     Square(){
         normal = vecK;
-        setCoefficients(1, 0, 0, 0, 1);
+        setCoefficients(SQUARE, 1, 0, 0, 0, 1);
     }
 
     void setNormal(Vector3D n){
@@ -805,7 +807,7 @@ public:
     Vector3D normal;
 
     Triangle(){
-        setCoefficients(1, 0, 0, 0, 1);
+        setCoefficients(TRIANGLE, 1, 0, 0, 0, 1);
     }
 
     void setNormal(){
@@ -968,13 +970,19 @@ ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos
         lColor = lColor + objectColor*(dl);
         lColor = lColor + currLight->lightColor*(sl);
 
+        lColor.normalize();
+
         ///accumulating all the effects from different lights
         totalLighting = totalLighting + lColor;
+        totalLighting.normalize();
     }
 
     ///reflection
     if(recurLevel > 1){
-        Vector3D Vr = Vd-normal*2*dotProduct(Vd,normal);
+        Vector3D Vr = Vd - normal*2*dotProduct(Vd,normal);
+        if(minObject->type == SPHERE){
+            Vr = Vr.getOppositeVector();
+        }
         Vr.normalize();
 
         //printf("normal: <%f,%f,%f>\n", normal.x, normal.y, normal.z);
@@ -982,9 +990,11 @@ ColorRGB getLightColors(Point3D minPoint, SceneObject *minObject, Point3D eyePos
         //printf("Vr    : <%f,%f,%f>\n\n", Vr.x, Vr.y, Vr.z);
 
         ColorRGB reflection =  findPixelColor(minPoint, Vr, NEAR_DIST, recurLevel-1);
+        reflection.normalize();
         //reflection.normalize();
 
         totalLighting = totalLighting + reflection*minObject->refCoeff; //comment out to omit reflection
+        totalLighting.normalize();
     }
 
     totalLighting.normalize();
@@ -1419,7 +1429,7 @@ void takeSceneInput(){
             tempSpehre->center = center;
             tempSpehre->radius = r;
             tempObj->setColor(color);
-            tempObj->setCoefficients(a, d, s, re, se);
+            tempObj->setCoefficients(SPHERE, a, d, s, re, se);
 
             objects.push_back(tempObj);
 
@@ -1442,7 +1452,7 @@ void takeSceneInput(){
             tempSquare->length = r;
 
             tempObj->setColor(color);
-            tempObj->setCoefficients(a, d, s, re, se);
+            tempObj->setCoefficients(SQUARE, a, d, s, re, se);
             objects.push_back(tempObj);
 
 
@@ -1458,7 +1468,7 @@ void takeSceneInput(){
             tempTriangle->setNormal();
 
             tempObj->setColor(color);
-            tempObj->setCoefficients(a, d, s, re, se);
+            tempObj->setCoefficients(TRIANGLE, a, d, s, re, se);
             objects.push_back(tempObj);
 
             //triangle2
@@ -1470,7 +1480,7 @@ void takeSceneInput(){
             tempTriangle->setNormal();
 
             tempObj->setColor(color);
-            tempObj->setCoefficients(a, d, s, re, se);
+            tempObj->setCoefficients(TRIANGLE, a, d, s, re, se);
             objects.push_back(tempObj);
 
             //triangle3
@@ -1482,7 +1492,7 @@ void takeSceneInput(){
             tempTriangle->setNormal();
 
             tempObj->setColor(color);
-            tempObj->setCoefficients(a, d, s, re, se);
+            tempObj->setCoefficients(TRIANGLE, a, d, s, re, se);
             objects.push_back(tempObj);
 
             //triangle4
@@ -1494,7 +1504,7 @@ void takeSceneInput(){
             tempTriangle->setNormal();
 
             tempObj->setColor(color);
-            tempObj->setCoefficients(a, d, s, re, se);
+            tempObj->setCoefficients(TRIANGLE, a, d, s, re, se);
             objects.push_back(tempObj);
 
         }
@@ -1506,7 +1516,7 @@ void takeSceneInput(){
     CheckerBoard *board = new CheckerBoard();
     SceneObject *tempObj = board;
     tempObj->setColor(white.getCopy());
-    tempObj->setCoefficients(0.4, 0.2, 0.2, 0.2, 12);
+    tempObj->setCoefficients(BOARD, 0.4, 0.2, 0.2, 0.2, 12);
     objects.push_back(tempObj);
 
     //lights
