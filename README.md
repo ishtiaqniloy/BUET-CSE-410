@@ -12,3 +12,6 @@ Specifications are given in "Read Me.pdf > Task 3"
 ## CSE_410_Box
 A box is implemented, using OpenGL in C, where sides can be opened and closed using keys 0 through 9  
 
+## CSE_410_GraphicsAPI
+The output of the first three stages of the raster based graphics pipeline is generated according to the provided scene description  
+Specifications are in "Assignment 2 Specification.pdf"
