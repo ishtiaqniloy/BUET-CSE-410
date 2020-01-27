@@ -15,3 +15,10 @@ A box is implemented, using OpenGL in C, where sides can be opened and closed us
 ## CSE_410_GraphicsAPI
 The output of the first three stages of the raster based graphics pipeline is generated according to the provided scene description  
 Specifications are in "Assignment 2 Specification.pdf"
+
+## CSE_410_Ray_Casting
+A scene rendered from description using ray casting method   
+Scene input: description.txt, image output: output.bmp  
+Specifications are given in "Assignment 3 Specification.pdf"
+
+
