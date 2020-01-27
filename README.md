@@ -9,3 +9,6 @@ Specifications are given in "Read Me.pdf > Task 1 and 2"
 A movable wheel is implemented using OpenGL in C  
 Specifications are given in "Read Me.pdf > Task 3"  
 
+## CSE_410_Box
+A box is implemented, using OpenGL in C, where sides can be opened and closed using keys 0 through 9  
+
